@@ -1,8 +1,8 @@
 #!/bin/python
 import re, requests, hashlib, urllib, urllib2, cookielib
 from bs4 import BeautifulSoup
+from sys import argv
 
-auth = open('auth').read()
 
 class UrlError(Exception):
 	def __init__(self, msg):
@@ -31,8 +31,8 @@ def login(s):
 
 	loginID = serverURL[51:]
 	
-	userName = 'PoorOldMoot'
-	pwdHash = hashlib.md5(auth).hexdigest()
+	userName = s.auth[0]
+	pwdHash = hashlib.md5(s.auth[1]).hexdigest()
 	hashKey = pwdHash + ":" + challenge
 	response = hashlib.md5(hashKey).hexdigest()
 
@@ -56,9 +56,9 @@ def scrounge(s):
 	}
 
 def main():
+	script, username, password = argv
 	s = requests.Session()
-	s.auth = ('PoorOldMoot', auth)
+	s.auth = (username, password)
 	login(s)
-	scrounge(s)
 
 main()
