@@ -1,51 +1,64 @@
 #!/bin/python
-import requests, hashlib
+import requests, hashlib, getpass, json
 from bs4 import BeautifulSoup
-from sys import argv
 
-
-class UrlError(Exception):
+class MeatError(Exception):
 	def __init__(self, msg):
 		self.msg = msg
 	def __str__(self):
 		return repr(self.msg)
 
-def login(s):
-	r = s.get('http://www.kingdomofloathing.com')
-	page = BeautifulSoup(r.text)
-	serverURL = r.url
-	loginID = serverURL[51:]
-	challenge = page.find('input', attrs = {'name':'challenge'})['value']
-	userName = s.auth[0]
-	pwdHash = hashlib.md5(s.auth[1]).hexdigest()
-	hashKey = pwdHash + ":" + challenge
-	response = hashlib.md5(hashKey).hexdigest()
+class MeatMachine(object):
+	def __init__(self):
+		self.session = requests.session()
 
-	form_data = {
-		'loggingin':'Yup.',
-		'loginname':userName,
-		'secure':'1',
-		'challenge':challenge,
-		'response':response
-	}
+	def login(self):
+		# Get user info
+		username = raw_input('Username: ')
+		password = getpass.getpass()
+		self.session.auth = (username, password)
+		response = self.session.get('http://www.kingdomofloathing.com')
+		# print 'homepage url:', response.url
+		page = BeautifulSoup(response.text)
+		self.serverURL = response.url
+		loginID = self.serverURL[51:]
+		challenge = page.find('input', attrs = {'name':'challenge'})['value']
+		pwdHash = hashlib.md5(password).hexdigest()
+		hashKey = pwdHash + ":" + challenge
+		response = hashlib.md5(hashKey).hexdigest()
 
-	r = s.post('http://www.kingdomofloathing.com/login.php', data=form_data)
-	print r.url
-	return r
+		form_data = {
+			'loggingin':'Yup.',
+			'loginname':username,
+			'secure':'1',
+			'challenge':challenge,
+			'response':response
+		}
+		response = self.session.post('http://www.kingdomofloathing.com/login.php', data=form_data)
+		if 'login' in response.url:
+			raise MeatError('Couldn\'t connect')
+		# print 'response url:', response.url
+		
+		self.update_status()
+		
+		output = open('game', 'w')
+		output.write(response.text)
+		output.close()
 
-def scrounge(s):
-	form_data = {
-		'action' : 'Skillz',
-		'whichskill' : '5000',
-		'quantity': '1',
-		'submit':'Use Skill'
-	}
+	def update_status(self):
+		action = {
+			'what':'status',
+			'for':'MeatMachine by Moot'
+		}
+		response = self.session.get('http://www.kingdomofloathing.com/api.php', params=action)
+		print response.url
+
+		output = open('api', 'w')
+		output.write(response.text)
+		output.close()
 
 def main():
-	script, username, password = argv
-	s = requests.Session()
-	s.auth = (username, password)
-	r = login(s)
-	output = open('output', 'w')
-	output.write(r.text)
+	moot = MeatMachine()
+	moot.login()
+
 main()
