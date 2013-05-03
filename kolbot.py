@@ -122,14 +122,18 @@ class MeatMachine(object):
 
 					self.output('adventure', response.text)
 
+					# If this is a non-combat adventure, just return
+					if 'Adventure Again' in response.text:
+						return
+
 					# If you can steal, attempt once
-					page.find('input', attrs = {'name':'steal'})
-					form_data = {'action':'steal'}
 					fightURL = self.serverURL + '/fight.php'
-					response = self.session.post(fightURL, data=form_data)
-					self.output('steal', response.text)
-					page = BeautifulSoup(response.text)
-					
+					if None != page.find('input', attrs = {'name':'steal'}):
+						form_data = {'action':'steal'}
+						response = self.session.post(fightURL, data=form_data)
+						self.output('steal', response.text)
+						page = BeautifulSoup(response.text)
+						
 					# Two men enter, one man leave
 					monster_alive = True
 					while monster_alive:
@@ -171,8 +175,10 @@ class MeatMachine(object):
 def main():
 	moot = MeatMachine()
 	moot.login()
-	for x in range(20):
-		moot.adventure(53)
+	
+	# for x in range(20):
+	# 	moot.adventure(53)
+	
 	while moot.has_adventures():
 		moot.adventure(260)
 
