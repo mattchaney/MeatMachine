@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 class MeatError(Exception):
 	def __init__(self, msg):
 		self.msg = msg
+		
 	def __str__(self):
 		return repr(self.msg)
 
@@ -24,17 +25,14 @@ class MeatMachine(object):
 			username = raw_input('Username: ')
 			password = getpass.getpass()
 			self.session.auth = (username, password)
-
 			self.serverURL = 'http://www.kingdomofloathing.com'
 			response = self.session.get(self.serverURL)
 			page = BeautifulSoup(response.text)
-
 			loginID = response.url[51:]
-			challenge = page.find('input', attrs = {'name':'challenge'})['value']
 			pwdHash = hashlib.md5(password).hexdigest()
+			challenge = page.find('input', attrs = {'name':'challenge'})['value']
 			hashKey = pwdHash + ":" + challenge
 			response = hashlib.md5(hashKey).hexdigest()
-
 			form_data = {
 				'loggingin':'Yup.',
 				'loginname':username,
@@ -42,19 +40,16 @@ class MeatMachine(object):
 				'challenge':challenge,
 				'response':response
 			}
-			loginURL = self.serverURL + '/login.php'
-			response = self.session.post(loginURL, data=form_data)
-
-			self.output('login', response.text)
-			
+			response = self.session.post(self.serverURL + '/login.php', data=form_data)
+			# self.output('login', response.text)
 			if 'login' in response.url:
-				raise MeatError('Couldn\'t connect')
+				raise MeatError('Couldn\'t connect... for some reason')
 			else:
 				self.loggedin = True
 				print 'You are now logged in'
 				self.update()
 		else:
-			raise MeatError("Can't log in, you're already logged in")
+			return
 
 	def logout(self):
 		'''
@@ -81,11 +76,8 @@ class MeatMachine(object):
 		Must be logged in before this method is called.
 		'''
 		if self.loggedin:
-			payload = {
-				'what':'status',
-				'for':'MeatMachine by Moot'
-			}
-			response = self.session.get('http://www.kingdomofloathing.com/api.php', params=payload)
+			payload = {'what':'status', 'for':'MeatMachine by Moot'}
+			response = self.session.get(self.serverURL + '/api.php', params=payload)
 			data = json.loads(response.text)
 			self.pwd = data['pwd']
 			self.hp = int(data['hp'])
@@ -93,15 +85,11 @@ class MeatMachine(object):
 			self.mp = int(data['mp'])
 			self.meat = int(data['meat'])
 			self.adventures = int(data['adventures'])
-
-			payload = {
-				'what':'inventory',
-				'for':'MeatMachine by Moot'
-			}
-			response = self.session.get('http://www.kingdomofloathing.com/api.php', params=payload)
+			payload = {'what':'inventory', 'for':'MeatMachine by Moot'}
+			response = self.session.get(self.serverURL + '/api.php', params=payload)
 			data = json.loads(response.text)
 		else:
-			raise MeatError("Can't update: You're not logged in")
+			raise MeatError("You must log in before calling update")
 
 	def adventure(self, where):
 		'''
@@ -111,51 +99,61 @@ class MeatMachine(object):
 		For a list of valid location IDs, 
 		refer to http://kol.coldfront.net/thekolwiki/index.php/Areas_by_Number
 		'''
-		if self.loggedin:
-			if(self.adventures > 0):
-				if isinstance(where, int):
-					snarfblat = where
-					adventureURL = self.serverURL + '/adventure.php'
-					payload = {'snarfblat':where}
-					response = self.session.get(adventureURL, params=payload)
-					page = BeautifulSoup(response.text)
+		if not self.loggedin:
+			raise MeatError('You must log in before calling adventure()')
+		if(self.adventures == 0):
+			print "You're out of adventures"
+			return
+		if not isinstance(where, int):
+			raise MeatError('Adventure location must be an integer')
 
-					self.output('adventure', response.text)
+		snarfblat = where
+		adventureURL = self.serverURL + '/adventure.php'
+		payload = {'snarfblat':where}
+		response = self.session.get(adventureURL, params=payload)
+		page = BeautifulSoup(response.text)
+		# If this is a non-combat adventure, just return
+		if 'Adventure Again' in response.text:
+			self.update()
+			return
+		# If you can steal, attempt once
+		if None != page.find('input', attrs = {'name':'steal'}):
+			form_data = {'action':'steal'}
+			response = self.session.post(self.serverURL + '/fight.php', data=form_data)
+		# Two men enter, one man leave
+		monster_alive = True
+		while monster_alive:
+			form_data = {'action':'attack'}
+			response = self.session.post(self.serverURL + '/fight.php', data=form_data)
+			if 'You win the fight!' in response.text:
+				monster_alive = False
+				break
+		self.update()
+		print "%d adventures left and current health is %d" % (self.adventures, self.hp)
 
-					# If this is a non-combat adventure, just return
-					if 'Adventure Again' in response.text:
-						return
-
-					# If you can steal, attempt once
-					fightURL = self.serverURL + '/fight.php'
-					if None != page.find('input', attrs = {'name':'steal'}):
-						form_data = {'action':'steal'}
-						response = self.session.post(fightURL, data=form_data)
-						self.output('steal', response.text)
-						page = BeautifulSoup(response.text)
-						
-					# Two men enter, one man leave
-					monster_alive = True
-					while monster_alive:
-						form_data = {'action':'attack'}
-						response = self.session.post(fightURL, data=form_data)
-						self.output('attack', response.text)
-						
-						if 'You win the fight!' in response.text:
-							monster_alive = False
-							break
-					self.update()
-					print "%d adventures left and current health is %d" % (self.adventures, self.hp)
-					
-
-				else:
-					raise MeatError('Adventure location must be an integer')
-			else:
-				print "You're out of adventures"
-				self.logout()
-		else:
-			self.login()
-			self.adventure(where)
+	def use_skill(self, what, quantity=1):
+		'''
+		Uses the skill specified by 'what' with an optional quantity (default is 1)
+		Must be logged in before and passed an integer ID.
+		For a list of valid skill IDs,
+		refer to http://kol.coldfront.net/thekolwiki/index.php/Skills_by_number
+		'''
+		if not self.loggedin:
+			raise MeatError('You must log in before calling use_skill()')
+		if not isinstance(what, int):
+			raise MeatError('Skill id must be an integer')
+		if quantity < 1:
+			raise MeatError('Can\'t use this skill a negative quantity of times: too meta')
+		skill = what
+		form_data = {
+			'pwd':self.pwd,
+			'action':'Skillz',
+			'whichskill':skill,
+			'quantity':quantity
+		}
+		response = self.session.post(self.serverURL + '/skills.php', data=form_data)
+		# self.output('skill',response.text)
+		self.update()
 
 	def consume(self, what):
 		'''
@@ -173,16 +171,16 @@ class MeatMachine(object):
 		pass
 
 def main():
-	moot = MeatMachine()
-	moot.login()
-	
-	# for x in range(20):
-	# 	moot.adventure(53)
-	
-	while moot.has_adventures():
-		moot.adventure(260)
-
-	print "You now have %d meat! Huzzah" % moot.meat
-	moot.logout()
+	bot = MeatMachine()
+	bot.login()
+	for x in range(int(bot.adventures * .25)):
+		bot.adventure(53)
+	while bot.has_adventures():
+		if bot.hp < 40:
+			bot.use_skill(5011, 2)
+			print 'used Disco Power Nap'
+		bot.adventure(260)
+	print "You now have %d meat! Huzzah" % bot.meat
+	bot.logout()
 
 main()
