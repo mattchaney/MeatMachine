@@ -125,7 +125,11 @@ class MeatMachine(object):
 		while monster_alive:
 			form_data = {'action':'attack'}
 			response = self.session.post(self.serverURL + '/fight.php', data=form_data)
+<<<<<<< HEAD
 			if 'Adventure Again' in response.text:
+=======
+			if 'You win the fight!' in response.text:
+>>>>>>> 4d0886ce7fdfdeae6000751f55a6520e59382ed2
 				monster_alive = False
 				break
 		self.update()
@@ -175,15 +179,15 @@ def main():
 	bot = MeatMachine()
 	bot.login()
 	bot.use_skill(5014, 3) # Advanced Cocktailcrafting
-	for x in range(10):
+	for x in range(15):
 		bot.adventure(51)
 	for x in range(15):
 		bot.adventure(53)
 	while bot.has_adventures():
 		if bot.hp < 40:
 			bot.use_skill(5011, 2)
-			print 'Took 2 Disco Power Naps...'
-		bot.adventure(110)
+			print 'used Disco Power Nap'
+		bot.adventure(260)
 	print "You now have %d meat! Huzzah" % bot.meat
 	bot.logout()
 
