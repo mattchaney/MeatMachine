@@ -125,11 +125,7 @@ class MeatMachine(object):
 		while monster_alive:
 			form_data = {'action':'attack'}
 			response = self.session.post(self.serverURL + '/fight.php', data=form_data)
-<<<<<<< HEAD
 			if 'Adventure Again' in response.text:
-=======
-			if 'You win the fight!' in response.text:
->>>>>>> 4d0886ce7fdfdeae6000751f55a6520e59382ed2
 				monster_alive = False
 				break
 		self.update()
