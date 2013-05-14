@@ -1,6 +1,6 @@
 #!/bin/python
 import requests, hashlib, getpass, json
-from bs4 import BeautifulSoup
+from BeautifulSoup import BeautifulSoup
 
 class MeatError(Exception):
 	def __init__(self, msg):
