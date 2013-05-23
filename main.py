@@ -1,4 +1,12 @@
 #!/usr/bin/python
+'''
+This is a sample main that is used for a Disco Bandit:
+After logging in, the bot will cast Advanced Cocktailcrafting 
+three times (the max per day) and then adventure in three
+different areas. If your character's hp drops below 40
+the bot will use the skill Disco Power Nap (which
+heals for 40 hp) three times.
+'''
 from MeatMachine import MeatMachine
 
 # 51 = Menagerie lvl1, 53 = Menagerie lvl2, 110 = icy peak 

@@ -85,9 +85,9 @@ class MeatMachine(object):
 			self.mp = int(data['mp'])
 			self.meat = int(data['meat'])
 			self.adventures = int(data['adventures'])
-			payload = {'what':'inventory', 'for':'MeatMachine by Moot'}
-			response = self.session.get(self.serverURL + '/api.php', params=payload)
-			data = json.loads(response.text)
+			# payload = {'what':'inventory', 'for':'MeatMachine by Moot'}
+			# response = self.session.get(self.serverURL + '/api.php', params=payload)
+			# data = json.loads(response.text)
 		else:
 			raise MeatError("You must log in before calling update")
 
