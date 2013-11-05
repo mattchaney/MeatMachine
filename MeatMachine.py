@@ -1,6 +1,6 @@
 #!/usr/bin/python
-import requests, hashlib, getpass, json
-from BeautifulSoup import BeautifulSoup
+import requests, hashlib, json, db
+from bs4 import BeautifulSoup
 
 class MeatError(Exception):
 	def __init__(self, msg):
@@ -11,35 +11,17 @@ class MeatError(Exception):
 
 class MeatMachine(object):
 	def __init__(self):
-		self.items = {
-			#food
-			'insanely spicy bean burrito':316,
-			'peach pie':2769,
-			#booze components
-			'magical ice cubes':1008,
-			'coconut shell':1007,
-			'cocktail onion':1560,
-			'raspberry':1561,
-			#booze
-			'bottle of domesticated turkey':1551,
-			'bottle of definit':1552,
-			'bottle of calcutta emerald':1553,
-			'boxed champagne':1556,
-		}
 		self.session = requests.session()
 		self.loggedin = False
 
-	def login(self):
+	def login(self, username, password):
 		'''
-		Logs the user in after prompting for username and password. 
-		Will not echo password to screen. If a connection error occurs a MeatError is raised
-		with an appropriate message. 
-		This must be called before any other actions can be taken with the bot.
+		Logs the user in. This must be called before any other actions 
+		can be taken with the bot.
 		'''
 		if self.loggedin:
 			return
-		username = raw_input('Username: ')
-		password = getpass.getpass()
+		password = password.strip()
 		self.session.auth = (username, password)
 		self.serverURL = 'http://www.kingdomofloathing.com'
 		response = self.session.get(self.serverURL)
@@ -58,24 +40,18 @@ class MeatMachine(object):
 		}
 		response = self.session.post(self.serverURL + '/login.php', data=form_data)
 		# self.output('login', response.text)
-		if 'login' in response.url:
-			print 'Couldn\'t connect... for some reason'
-		else:
+		if 'login' not in response.url:
 			self.loggedin = True
-			print 'You are now logged in'
 			self.update()
 
 	def logout(self):
 		'''
-		Logs the character out
+		Logs the user out.
 		'''
 		if self.loggedin:
 			logoutURL = self.serverURL + '/logout.php'
 			response = self.session.get(logoutURL)
 			self.loggedin = False
-			print 'You have logged out'
-		else:
-			print "You're already logged out"
 
 	def output(self, filename, text):
 		output = open(filename, 'w')
@@ -101,9 +77,12 @@ class MeatMachine(object):
 		self.meat = int(data['meat'])
 		self.drunk = int(data['drunk'])
 		self.adventures = int(data['adventures'])
-		payload = {'what':'inventory', 'for':'MeatMachine by Moot'}
+		payload = {
+			'what':'inventory', 
+			'for':'MeatMachine by Moot'
+		}
 		response = self.session.get(self.serverURL + '/api.php', params=payload)
-		self.invenvtory = json.loads(response.text)
+		self.inventory = json.loads(response.text)
 
 	def adventure(self, where):
 		'''
@@ -116,11 +95,9 @@ class MeatMachine(object):
 		if not self.loggedin:
 			raise MeatError('def adventure: You must log in before calling adventure()')
 		if(self.adventures == 0):
-			print "You're out of adventures"
 			return
 		if not isinstance(where, int):
 			raise MeatError('def adventure: Adventure location must be an integer')
-
 		snarfblat = where
 		adventureURL = self.serverURL + '/adventure.php'
 		payload = {'snarfblat':where}
@@ -142,7 +119,6 @@ class MeatMachine(object):
 				monster_alive = False
 				break
 		self.update()
-		print "%d adventures left and current health is %d" % (self.adventures, self.hp)
 
 	def use_skill(self, what, quantity=1):
 		'''
@@ -168,23 +144,24 @@ class MeatMachine(object):
 		# self.output('skill',response.text)
 		self.update()
 
-	def consume(self, type, which_item, how_many=1):
+	def consume(self, type, what, quantity=1):
 		'''
 		Will look in player inventory for the target item 'which_item' and 
-		eat or drink it if it's available. Must be fed an integer item id number to work.
-		For a list of valid item IDs, 
-		refer to http://kol.coldfront.net/thekolwiki/index.php/Items_by_number
+		eat or drink it if it's available.
 		'''
 		if not self.loggedin:
 			raise MeatError('def consume: You must log in first')
-		if not isinstance(which_item, int) or not isinstance(how_many, int):
-			raise MeatError('def consume: Parameter how_many and which_item must be of type integer')
-		if how_many < 1:
+		if not isinstance(quantity, int):
+			raise MeatError('def consume: Parameter quantity must be of type integer')
+		if quantity < 1:
 			raise MeatError('def consume: Can\'t use this skill a negative quantity of times')
+		item_id = self.get_id(what)
+		if item_id == None:
+			raise MeatError('def consume: no item with that name')
 		form_data = {
 			'pwd': self.pwd,
-			'which': how_many,
-			'whichitem': which_item
+			'which': quantity,
+			'whichitem': item_id
 		}
 		if type is 'food':
 			response = self.session.post(self.serverURL + '/inv_eat.php', data=form_data)
@@ -192,8 +169,34 @@ class MeatMachine(object):
 			response = self.session.post(self.serverURL + '/inv_booze.php', data=form_data)
 		else:
 			raise MeatError('Type must be either food or booze')
-		self.output('consume', response.text)
+		# self.output('consume', response.text)
 		self.update()
+		if "You don't have the item you're trying to use" in response.text:
+			return False
+		else:
+			return True
+
+	def still(self, what, quantity=1):
+		'''
+		Will go to the sneaky dude guild and use Nash Crosby's still to
+		improve a booze item or ingredient
+		'''
+		if not self.loggedin:
+			raise MeatError('def still: Must be logged in')
+		if not isinstance(quantity, int):
+			raise MeatError('def still: quantity must be of type integer')
+		if(quantity < 1):
+			raise MeatError('def still: Quantity must be positive')
+		item_id = self.get_id(what)
+		if item_id == None:
+			raise MeatError('def still: invalid item name')
+		form_data = {
+			'action':'stillbooze',
+			'whichitem':item_id,
+			'quantity':quantity
+		}
+		response = self.session.post(self.serverURL + '/guild.php', data=form_data)
+		# self.output('still', response.text)
 
 	def craft(self, what, a, b):
 		'''
@@ -211,4 +214,20 @@ class MeatMachine(object):
 		# self.output('craft', response.text)
 
 	def get_id(self, item_name):
-		return self.items[item_name]
+		'''
+		Takes an item name and returns its id number
+		'''
+		if item_name in db.items:
+			return db.items[item_name]
+		else:
+			return None
+
+	def inv_qty(self, item_name):
+		'''
+		Takes and item name and returns the quantity in your inventory
+		'''
+		key = unicode(self.get_id(item_name))
+		if key in self.inventory:
+			return int(self.inventory[key])
+		else:
+			return 0
