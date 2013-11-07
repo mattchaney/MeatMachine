@@ -69,6 +69,7 @@ class MeatMachine(object):
 			raise MeatError("def update: You must log in before calling update")
 		payload = {'what':'status', 'for':'MeatMachine by Moot'}
 		response = self.session.get(self.serverURL + '/api.php', params=payload)
+		self.output('update', response.text)
 		data = json.loads(response.text)
 		self.pwd = data['pwd']
 		self.hp = int(data['hp'])
@@ -77,10 +78,7 @@ class MeatMachine(object):
 		self.meat = int(data['meat'])
 		self.drunk = int(data['drunk'])
 		self.adventures = int(data['adventures'])
-		payload = {
-			'what':'inventory', 
-			'for':'MeatMachine by Moot'
-		}
+		payload = {'what':'inventory', 'for':'MeatMachine by Moot'}
 		response = self.session.get(self.serverURL + '/api.php', params=payload)
 		self.inventory = json.loads(response.text)
 
@@ -155,6 +153,7 @@ class MeatMachine(object):
 			raise MeatError('def consume: Parameter quantity must be of type integer')
 		if quantity < 1:
 			raise MeatError('def consume: Can\'t use this skill a negative quantity of times')
+		
 		item_id = self.get_id(what)
 		if item_id == None:
 			raise MeatError('def consume: no item with that name')
@@ -176,7 +175,7 @@ class MeatMachine(object):
 		else:
 			return True
 
-	def still(self, what, quantity=1):
+	def use_still(self, what, quantity=1):
 		'''
 		Will go to the sneaky dude guild and use Nash Crosby's still to
 		improve a booze item or ingredient
@@ -196,6 +195,7 @@ class MeatMachine(object):
 			'quantity':quantity
 		}
 		response = self.session.post(self.serverURL + '/guild.php', data=form_data)
+		self.update()
 		# self.output('still', response.text)
 
 	def craft(self, what, a, b):
@@ -215,7 +215,8 @@ class MeatMachine(object):
 
 	def get_id(self, item_name):
 		'''
-		Takes an item name and returns its id number
+		Takes an item name and returns its id number. Returns None if 
+		there is no known item called 'item_name'
 		'''
 		if item_name in db.items:
 			return db.items[item_name]
