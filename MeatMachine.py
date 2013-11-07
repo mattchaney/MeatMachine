@@ -66,7 +66,7 @@ class MeatMachine(object):
 		Must be logged in before this method is called.
 		'''
 		if not self.loggedin:
-			raise MeatError("def update: You must log in before calling update")
+			raise MeatError("You must log in before calling update")
 		payload = {'what':'status', 'for':'MeatMachine by Moot'}
 		response = self.session.get(self.serverURL + '/api.php', params=payload)
 		self.output('update', response.text)
@@ -91,11 +91,11 @@ class MeatMachine(object):
 		refer to http://kol.coldfront.net/thekolwiki/index.php/Areas_by_Number
 		'''
 		if not self.loggedin:
-			raise MeatError('def adventure: You must log in before calling adventure()')
+			raise MeatError('You must log in before calling adventure()')
 		if(self.adventures == 0):
 			return
 		if not isinstance(where, int):
-			raise MeatError('def adventure: Adventure location must be an integer')
+			raise MeatError('Adventure location must be an integer')
 		snarfblat = where
 		adventureURL = self.serverURL + '/adventure.php'
 		payload = {'snarfblat':where}
@@ -126,11 +126,11 @@ class MeatMachine(object):
 		refer to http://kol.coldfront.net/thekolwiki/index.php/Skills_by_number
 		'''
 		if not self.loggedin:
-			raise MeatError('def use_skill: You must log in before calling use_skill()')
+			raise MeatError('You must log in before calling use_skill()')
 		if not isinstance(what, int):
-			raise MeatError('def use_skill: Skill id must be an integer')
+			raise MeatError('Skill id must be an integer')
 		if quantity < 1:
-			raise MeatError('def use_skill: Can\'t use this skill a negative quantity of times: too meta')
+			raise MeatError('Can\'t use this skill a negative quantity of times: too meta')
 		skill = what
 		form_data = {
 			'pwd':self.pwd,
@@ -148,15 +148,15 @@ class MeatMachine(object):
 		eat or drink it if it's available.
 		'''
 		if not self.loggedin:
-			raise MeatError('def consume: You must log in first')
+			raise MeatError('You must log in first')
 		if not isinstance(quantity, int):
-			raise MeatError('def consume: Parameter quantity must be of type integer')
+			raise MeatError('Parameter quantity must be of type integer')
 		if quantity < 1:
-			raise MeatError('def consume: Can\'t use this skill a negative quantity of times')
+			raise MeatError('Can\'t use this skill a negative quantity of times')
 		
 		item_id = self.get_id(what)
 		if item_id == None:
-			raise MeatError('def consume: no item with that name')
+			raise MeatError('No item with that name')
 		form_data = {
 			'pwd': self.pwd,
 			'which': quantity,
@@ -181,14 +181,14 @@ class MeatMachine(object):
 		improve a booze item or ingredient
 		'''
 		if not self.loggedin:
-			raise MeatError('def still: Must be logged in')
+			raise MeatError('Must be logged in')
 		if not isinstance(quantity, int):
-			raise MeatError('def still: quantity must be of type integer')
+			raise MeatError('Quantity must be of type integer')
 		if(quantity < 1):
-			raise MeatError('def still: Quantity must be positive')
+			raise MeatError('Quantity must be positive')
 		item_id = self.get_id(what)
 		if item_id == None:
-			raise MeatError('def still: invalid item name')
+			raise MeatError('Invalid item name')
 		form_data = {
 			'action':'stillbooze',
 			'whichitem':item_id,
