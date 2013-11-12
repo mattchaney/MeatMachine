@@ -127,11 +127,11 @@ class MeatMachine(object):
 		'''
 		if not self.loggedin:
 			raise MeatError('You must log in before calling use_skill()')
-		if not isinstance(what, int):
-			raise MeatError('Skill id must be an integer')
+		if not isinstance(quantity, int):
+			raise MeatError('Quantity must be an integer')
 		if quantity < 1:
 			raise MeatError('Can\'t use this skill a negative quantity of times: too meta')
-		skill = what
+		skill = self.get_id(what)
 		form_data = {
 			'pwd':self.pwd,
 			'action':'Skillz',
@@ -150,13 +150,13 @@ class MeatMachine(object):
 		if not self.loggedin:
 			raise MeatError('You must log in first')
 		if not isinstance(quantity, int):
-			raise MeatError('Parameter quantity must be of type integer')
+			raise MeatError('Quantity must be an integer')
 		if quantity < 1:
 			raise MeatError('Can\'t use this skill a negative quantity of times')
 		
 		item_id = self.get_id(what)
 		if item_id == None:
-			raise MeatError('No item with that name')
+			raise MeatError('Invalid item name')
 		form_data = {
 			'pwd': self.pwd,
 			'which': quantity,
@@ -213,13 +213,15 @@ class MeatMachine(object):
 		# response = self.session.post(self.serverURL + '/craft', data=form_data)
 		# self.output('craft', response.text)
 
-	def get_id(self, item_name):
+	def get_id(self, name):
 		'''
 		Takes an item name and returns its id number. Returns None if 
-		there is no known item called 'item_name'
+		there is no known item called 'name'
 		'''
-		if item_name in db.items:
-			return db.items[item_name]
+		if name in db.items:
+			return db.items[name]
+		elif name in db.skills:
+			return db.skills[name]
 		else:
 			return None
 

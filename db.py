@@ -31,3 +31,10 @@ items = {
 	'neuromancer':1582,
 	'mae west':1584
 }
+
+skills = {
+	'disco nap':5011,
+	'advanced cocktailcrafting':5014,
+	'disco fever':5009,
+	'disco leer':5039,
+}
