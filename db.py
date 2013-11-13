@@ -33,7 +33,7 @@ items = {
 }
 
 skills = {
-	'disco nap':5011,
+	'disco nap':5007,
 	'advanced cocktailcrafting':5014,
 	'disco fever':5009,
 	'disco leer':5039,

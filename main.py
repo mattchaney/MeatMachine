@@ -25,10 +25,12 @@ def main():
 	garnishes = ['strawberry', 'olive']
 	for _ in xrange(5):
 		item = random_item(bot, boozes)
-		bot.use_still(item)
+		if item is not None:
+			bot.use_still(item)
 	for _ in xrange(5):
 		item = random_item(bot, garnishes)
-		bot.use_still(item)
+		if item is not None:
+			bot.use_still(item)
 
 	# Eat some burritos
 	bot.consume('food', 'insanely spicy bean burrito', 5)

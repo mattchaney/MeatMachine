@@ -95,7 +95,7 @@ class MeatMachine(object):
 		if(self.adventures == 0):
 			return
 		if not isinstance(where, int):
-			raise MeatError('Adventure location must be an integer')
+			raise MeatError('Adventure location must be an integer, type(where): %s' % type(where))
 		snarfblat = where
 		adventureURL = self.serverURL + '/adventure.php'
 		payload = {'snarfblat':where}
@@ -128,7 +128,7 @@ class MeatMachine(object):
 		if not self.loggedin:
 			raise MeatError('You must log in before calling use_skill()')
 		if not isinstance(quantity, int):
-			raise MeatError('Quantity must be an integer')
+			raise MeatError('Quantity must be an integer, type (quantity): %s' % type(quantity))
 		if quantity < 1:
 			raise MeatError('Can\'t use this skill a negative quantity of times: too meta')
 		skill = self.get_id(what)
@@ -150,7 +150,7 @@ class MeatMachine(object):
 		if not self.loggedin:
 			raise MeatError('You must log in first')
 		if not isinstance(quantity, int):
-			raise MeatError('Quantity must be an integer')
+			raise MeatError('Quantity must be an integer, type(quantity): %s' % type(quantity))
 		if quantity < 1:
 			raise MeatError('Can\'t use this skill a negative quantity of times')
 		
@@ -167,7 +167,7 @@ class MeatMachine(object):
 		elif type is 'booze':
 			response = self.session.post(self.serverURL + '/inv_booze.php', data=form_data)
 		else:
-			raise MeatError('Type must be either food or booze')
+			raise MeatError('Type must be either food or booze, type: %s ' % type)
 		# self.output('consume', response.text)
 		self.update()
 		if "You don't have the item you're trying to use" in response.text:
@@ -183,12 +183,12 @@ class MeatMachine(object):
 		if not self.loggedin:
 			raise MeatError('Must be logged in')
 		if not isinstance(quantity, int):
-			raise MeatError('Quantity must be of type integer')
+			raise MeatError('Quantity must be of type integer, quantity: %d' % quantity)
 		if(quantity < 1):
-			raise MeatError('Quantity must be positive')
+			raise MeatError('Quantity must be positive, quantity: %d' % quantity)
 		item_id = self.get_id(what)
 		if item_id == None:
-			raise MeatError('Invalid item name')
+			raise MeatError('Invalid item name: %s' % what)
 		form_data = {
 			'action':'stillbooze',
 			'whichitem':item_id,
