@@ -2,8 +2,8 @@
 '''
 This is a sample main that is used for a Disco Bandit.
 '''
-import time, random
-from MeatMachine import MeatMachine
+import time, random, drink, db
+from meatmachine import MeatMachine
 
 def main():
 	bot = MeatMachine()
@@ -27,13 +27,21 @@ def main():
 		item = random_item(bot, boozes)
 		if item is not None:
 			bot.use_still(item)
+		else:
+			boozes.remove(item)
 	for _ in xrange(5):
 		item = random_item(bot, garnishes)
 		if item is not None:
 			bot.use_still(item)
+		else:
+			garnishes.remove(item)
 
 	# Eat some burritos
-	bot.consume('food', 'insanely spicy bean burrito', 5)
+	for _ in xrange(5):
+		if bot.consume('food', 'insanely spicy bean burrito'):
+			print('Ate an insanely spicy bean burrito')
+		else:
+			break
 
 	# All you can drink!
 	if bot.drunk < 19:

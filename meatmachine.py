@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import requests, hashlib, json, db
+import requests, hashlib, json, db, drink
 from bs4 import BeautifulSoup
 
 class MeatError(Exception):
@@ -131,7 +131,7 @@ class MeatMachine(object):
 			raise MeatError('Quantity must be an integer, type (quantity): %s' % type(quantity))
 		if quantity < 1:
 			raise MeatError('Can\'t use this skill a negative quantity of times: too meta')
-		skill = self.get_id(what)
+		skill = db.get_id(what)
 		form_data = {
 			'pwd':self.pwd,
 			'action':'Skillz',
@@ -154,7 +154,7 @@ class MeatMachine(object):
 		if quantity < 1:
 			raise MeatError('Can\'t use this skill a negative quantity of times')
 		
-		item_id = self.get_id(what)
+		item_id = db.get_id(what)
 		if item_id == None:
 			raise MeatError('Invalid item name')
 		form_data = {
@@ -168,9 +168,9 @@ class MeatMachine(object):
 			response = self.session.post(self.serverURL + '/inv_booze.php', data=form_data)
 		else:
 			raise MeatError('Type must be either food or booze, type: %s ' % type)
-		# self.output('consume', response.text)
+		self.output('consume', response.text)
 		self.update()
-		if "You don't have the item you're trying to use" in response.text:
+		if "You don't have the item you're trying to use" in response.text or "You're too full to eat that" in response.text:
 			return False
 		else:
 			return True
@@ -186,7 +186,7 @@ class MeatMachine(object):
 			raise MeatError('Quantity must be of type integer, quantity: %d' % quantity)
 		if(quantity < 1):
 			raise MeatError('Quantity must be positive, quantity: %d' % quantity)
-		item_id = self.get_id(what)
+		item_id = db.get_id(what)
 		if item_id == None:
 			raise MeatError('Invalid item name: %s' % what)
 		form_data = {
@@ -198,38 +198,30 @@ class MeatMachine(object):
 		self.update()
 		# self.output('still', response.text)
 
-	def craft(self, what, a, b):
+	def craft(self, type, what):
 		'''
-		Will attempt to craft the type of item specified by the param 'what'. 
-		'what' should be 'cocktail' to craft a booze item.
+		Will attempt to craft the type of item specified by the param 'type'. 
+		'type' should be 'cocktail' to craft a booze item.
 		'''
-		# if not self.loggedin:
-		# 	raise MeatError('Must be logged in')
+		if not self.loggedin:
+			raise MeatError('Must be logged in')
+		if type == 'cocktail':
+			cocktail = db.get_drink(what)
+
+		print cocktail.ingredients()
 		# form_data = {
-		# 	'mode':what,
-		# 	'a':get_id(a),
-		# 	'b':get_id(b)
+		# 	'mode':type,
+		# 	'a':db.get_id(a),
+		# 	'b':db.get_id(b)
 		# }
 		# response = self.session.post(self.serverURL + '/craft', data=form_data)
 		# self.output('craft', response.text)
 
-	def get_id(self, name):
-		'''
-		Takes an item name and returns its id number. Returns None if 
-		there is no known item called 'name'
-		'''
-		if name in db.items:
-			return db.items[name]
-		elif name in db.skills:
-			return db.skills[name]
-		else:
-			return None
-
 	def inv_qty(self, item_name):
 		'''
-		Takes and item name and returns the quantity in your inventory
+		Takes an item name and returns the quantity in your inventory
 		'''
-		key = unicode(self.get_id(item_name))
+		key = unicode(db.get_id(item_name))
 		if key in self.inventory:
 			return int(self.inventory[key])
 		else:
