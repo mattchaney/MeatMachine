@@ -1,8 +1,8 @@
 #! /usr/python
-import db
 
 class drink(object):
-	def __init__(self, a, b):
+	def __init__(self, id, a, b):
+		self.id = id
 		self.a = a
 		self.b = b
 

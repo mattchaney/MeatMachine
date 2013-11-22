@@ -45,15 +45,15 @@ skills = {
 
 drinks = {
 	# Premium Cocktails
-	'gibson': drink(1553,1560),
-	'rabbit punch':drink(1551,1561),
-	'parisian cathouse':drink(1556,1561),
-	'vodka gibson':drink(1552,1560),
+	'gibson': drink(1570,1553,1560),
+	'rabbit punch':drink(1572,1551,1561),
+	'parisian cathouse':drink(1571,1556,1561),
+	'vodka gibson':drink(1569,1552,1560),
 	# Extra-Fruity Girl Drinks
-	'mae west':drink(lambda:drinks['rabbit punch'],1008),
-	'prussian cathouse':drink(lambda:drinks['parisian cathouse'],1008),
-	'neuromancer':drink(lambda:drinks['gibson'],1007),
-	'vodka stratocaster':drink(lambda:drinks['vodka gibson'],1007),
+	'mae west':drink(1584,lambda:drinks['rabbit punch'],1008),
+	'prussian cathouse':drink(1561,lambda:drinks['parisian cathouse'],1008),
+	'neuromancer':drink(1582,lambda:drinks['gibson'],1007),
+	'vodka stratocaster':drink(1581,lambda:drinks['vodka gibson'],1007),
 }
 
 def get_id(name):

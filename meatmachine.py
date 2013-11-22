@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import requests, hashlib, json, db, drink
+import requests, hashlib, json, db
 from bs4 import BeautifulSoup
 
 class MeatError(Exception):
@@ -69,7 +69,7 @@ class MeatMachine(object):
 			raise MeatError("You must log in before calling update")
 		payload = {'what':'status', 'for':'MeatMachine by Moot'}
 		response = self.session.get(self.serverURL + '/api.php', params=payload)
-		self.output('update', response.text)
+		# self.output('update', response.text)
 		data = json.loads(response.text)
 		self.pwd = data['pwd']
 		self.hp = int(data['hp'])
@@ -142,7 +142,7 @@ class MeatMachine(object):
 		# self.output('skill',response.text)
 		self.update()
 
-	def consume(self, type, what, quantity=1):
+	def consume(self, kind, what, quantity=1):
 		'''
 		Will look in player inventory for the target item 'which_item' and 
 		eat or drink it if it's available.
@@ -162,12 +162,12 @@ class MeatMachine(object):
 			'which': quantity,
 			'whichitem': item_id
 		}
-		if type is 'food':
+		if kind is 'food':
 			response = self.session.post(self.serverURL + '/inv_eat.php', data=form_data)
-		elif type is 'booze':
+		elif kind is 'booze':
 			response = self.session.post(self.serverURL + '/inv_booze.php', data=form_data)
 		else:
-			raise MeatError('Type must be either food or booze, type: %s ' % type)
+			raise MeatError('kind must be either food or booze, kind: %s ' % kind)
 		self.output('consume', response.text)
 		self.update()
 		if "You don't have the item you're trying to use" in response.text or "You're too full to eat that" in response.text:
@@ -198,24 +198,34 @@ class MeatMachine(object):
 		self.update()
 		# self.output('still', response.text)
 
-	def craft(self, type, what):
+	def craft(self, kind, what, quantity=1):
 		'''
-		Will attempt to craft the type of item specified by the param 'type'. 
-		'type' should be 'cocktail' to craft a booze item.
+		Will attempt to craft the type of item specified by the param 'kind'. 
+		'kind' should be 'cocktail' to craft a booze item.
 		'''
 		if not self.loggedin:
 			raise MeatError('Must be logged in')
-		if type == 'cocktail':
+		if not isinstance(quantity, int):
+			raise MeatError('Quantity must be an integer, type(quantity): %s' % type(quantity))
+		if kind == 'cocktail':
 			cocktail = db.get_drink(what)
-
-		print cocktail.ingredients()
-		# form_data = {
-		# 	'mode':type,
-		# 	'a':db.get_id(a),
-		# 	'b':db.get_id(b)
-		# }
-		# response = self.session.post(self.serverURL + '/craft', data=form_data)
+		ingredients = cocktail.ingredients()
+		form_data = {
+				'mode':kind,
+				'pwd': self.pwd,
+				'action':'craft',
+				'qty':quantity,
+		}
+		if isinstance(ingredients[0], tuple):
+			form_data['steps[]'] = [ str(ingredients[0][0]) + ',' + str(ingredients[0][1]), str(cocktail.id) + ',' + str(ingredients[1]) ]
+		elif isinstance(ingredients[1], tuple):
+			form_data['steps[]'] = [ str(ingredients[1][0]) + ',' + str(ingredients[1][1]), str(cocktail.id) + ',' + str(ingredients[0]) ]
+		else:
+			form_data['a'] = ingredients[0]
+			form_data['b'] = ingredients[1]
+		response = self.session.post(self.serverURL + '/craft.php', params=form_data)
 		# self.output('craft', response.text)
+		return response
 
 	def inv_qty(self, item_name):
 		'''
