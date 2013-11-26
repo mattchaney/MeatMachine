@@ -2,7 +2,7 @@
 '''
 This is a sample main that is used for a Disco Bandit.
 '''
-import time, random, drink, db
+import time, random, db
 from meatmachine import MeatMachine
 
 def main():
@@ -10,7 +10,7 @@ def main():
 	print(time.strftime("%Y/%m/%d"))
 
 	# auth is a text file containining the account password
-	# This is so you can automate this bot to run in the background via something like cron, ie
+	# This is so you can automate this bot to run in the background via something like cron
 	bot.login('pooroldmoot', open('auth').read())
 	if not bot.loggedin:
 		print('Failed to log in')
@@ -42,14 +42,21 @@ def main():
 			print('Ate an insanely spicy bean burrito')
 		else:
 			break
+			
+	# Make some cocktails
+	drinks = db.get_all_drinks()
+	for item in drinks:
+		if bot.can_craft(item):
+			while bot.craft('cocktail', item):
+				print "Mixed a %s" % item
 
 	# All you can drink!
 	if bot.drunk < 19:
 		drinks = {'perpendicular hula':4,'pink pony':4, 'vodka stratocaster':4, 'neuromancer':4, 'mae west':4, 'rabbit punch':4, 'prussian cathouse':4, 'vodka gibson':3}
-		drink = random_item(bot, drinks.keys())
-		while drink is not None and bot.drunk < 20 - drinks[drink] and bot.consume('booze', drink):
-			drink = random_item(bot, drinks.keys())
-			print('Drank a %s' % drink)
+		cocktail = random_item(bot, drinks.keys())
+		while cocktail is not None and bot.drunk < 20 - drinks[cocktail] and bot.consume('booze', cocktail):
+			cocktail = random_item(bot, drinks.keys())
+			print('Drank a %s' % cocktail)
 
 	# Time to go on an adventure!
 	print('Starting with %d adventures' % bot.adventures)

@@ -209,30 +209,48 @@ class MeatMachine(object):
 			raise MeatError('Quantity must be an integer, type(quantity): %s' % type(quantity))
 		if kind == 'cocktail':
 			cocktail = db.get_drink(what)
-		ingredients = cocktail.ingredients()
+		if not self.can_craft(what):
+			return False
+
 		form_data = {
 				'mode':kind,
 				'pwd': self.pwd,
 				'action':'craft',
 				'qty':quantity,
 		}
-		if isinstance(ingredients[0], tuple):
-			form_data['steps[]'] = [ str(ingredients[0][0]) + ',' + str(ingredients[0][1]), str(cocktail.id) + ',' + str(ingredients[1]) ]
-		elif isinstance(ingredients[1], tuple):
-			form_data['steps[]'] = [ str(ingredients[1][0]) + ',' + str(ingredients[1][1]), str(cocktail.id) + ',' + str(ingredients[0]) ]
+		parts = cocktail.parts()
+		if isinstance(parts[0], db.drink):
+			if self.inv_qty(parts[0].id) > 0:
+				form_data['a'] = parts[0].id
+				form_data['b'] = parts[1]
+			else:
+				form_data['steps[]'] = [ str(parts[0].parts()).replace(" ","")[1:len(str(parts[0].parts()))-2], str(parts[0].id)+ ","+ str(parts[1])]
 		else:
-			form_data['a'] = ingredients[0]
-			form_data['b'] = ingredients[1]
+			form_data['a'] = parts[0]
+			form_data['b'] = parts[1]
 		response = self.session.post(self.serverURL + '/craft.php', params=form_data)
 		# self.output('craft', response.text)
-		return response
+		return "You acquire" in response.text
 
 	def inv_qty(self, item_name):
 		'''
-		Takes an item name and returns the quantity in your inventory
+		Takes an item name or item id and returns the quantity in your inventory
 		'''
-		key = unicode(db.get_id(item_name))
+		if isinstance(item_name, str):
+			key = unicode(db.get_id(item_name))
+		elif isinstance(item_name, int):
+			key = unicode(item_name)
 		if key in self.inventory:
 			return int(self.inventory[key])
 		else:
 			return 0
+
+	def can_craft(self, item_name):
+		'''
+		Returns True if you have the parts to brew this booze item
+		'''
+		parts_list = db.get_parts(item_name)
+		for part in parts_list:
+			if self.inv_qty(part) == 0:
+				return False
+		return True

@@ -1,26 +1,21 @@
 #! /usr/python
 
 class drink(object):
-	def __init__(self, id, a, b):
+	def __init__(self, name, id, a, b):
+		self.name = name
 		self.id = id
 		self.a = a
 		self.b = b
 
-	def ingredients(self):
+	def parts(self):
 		'''
 		Returns tuple of drink ingredient item id numbers. If it is a multi-layered drink, 
-		i.e. mae west is a rabbit punch and magical ice cubes, a tuple within a tuple is 
-		returned. Good luck!
+		i.e. mae west is a rabbit punch and magical ice cubes, a drink object representing
+		the drink component will be the first item in the tuple.
 		'''
-		if isinstance(self.a, type(lambda: None)) and isinstance(self.b, type(lambda: None)):
-			# print 'both'
-			return self.a().ingredients(), self.b().ingredients()
-		elif isinstance(self.a, type(lambda: None)):
-			# print 'just a'
-			return self.a().ingredients(), self.b
+		if isinstance(self.a, type(lambda: None)):
+			return self.a(), self.b
 		elif isinstance(self.b, type(lambda: None)):
-			# print 'just b'
-			return self.a, self.b().ingredients()
+			return self.b(), self.a
 		else:
-			# print 'neither'
 			return self.a, self.b
