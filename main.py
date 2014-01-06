@@ -21,20 +21,21 @@ def main():
 	bot.use_skill('advanced cocktailcrafting', 5)
 
 	# Use the still 10 times for whatever booze items you have
-	boozes = ['bottle of vodka', 'bottle of gin', 'bottle of whiskey', 'bottle of rum', 'bottle of tequila']
+	boozes = ['bottle of vodka', 'bottle of gin', 'bottle of whiskey', 'boxed wine']
 	garnishes = ['strawberry', 'olive']
-	for _ in xrange(5):
+	for i in xrange(5):
 		item = random_item(bot, boozes)
 		if item is not None:
 			bot.use_still(item)
 		else:
-			boozes.remove(item)
+			break
+		
 	for _ in xrange(5):
 		item = random_item(bot, garnishes)
 		if item is not None:
 			bot.use_still(item)
 		else:
-			garnishes.remove(item)
+			break
 
 	# Eat some burritos
 	for _ in xrange(5):
@@ -52,7 +53,7 @@ def main():
 
 	# All you can drink!
 	if bot.drunk < 19:
-		drinks = {'perpendicular hula':4,'pink pony':4, 'vodka stratocaster':4, 'neuromancer':4, 'mae west':4, 'rabbit punch':4, 'prussian cathouse':4, 'vodka gibson':3}
+		drinks = {'perpendicular hula':4,'pink pony':4, 'vodka stratocaster':4, 'neuromancer':4, 'mae west':4, 'rabbit punch':4, 'prussian cathouse':4, 'calle de miel':4, 'perpendicular hula':4, 'vodka gibson':3, 'gibson':3}
 		cocktail = random_item(bot, drinks.keys())
 		while cocktail is not None and bot.drunk < 20 - drinks[cocktail] and bot.consume('booze', cocktail):
 			cocktail = random_item(bot, drinks.keys())
@@ -71,6 +72,9 @@ def main():
 		bot.adventure(110)
 		if(bot.adventures % 25 == 0):
 			print("%d adventures left, current hp: %d" % (bot.adventures, bot.hp))
+	# A nightcap
+	[bot.consume('booze', item) for item in drinks if bot.inv_qty(item) > 0]
+	bot.update()
 	print("Logging out. New meat total: %d." % bot.meat)
 	bot.logout()
 

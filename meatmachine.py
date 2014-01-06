@@ -53,14 +53,6 @@ class MeatMachine(object):
 			response = self.session.get(logoutURL)
 			self.loggedin = False
 
-	def output(self, filename, text):
-		output = open(filename, 'w')
-		output.write(text)
-		output.close()
-
-	def has_adventures(self):
-		return self.adventures > 0
-
 	def update(self):
 		'''
 		Must be logged in before this method is called.
@@ -153,7 +145,6 @@ class MeatMachine(object):
 			raise MeatError('Quantity must be an integer, type(quantity): %s' % type(quantity))
 		if quantity < 1:
 			raise MeatError('Can\'t use this skill a negative quantity of times')
-		
 		item_id = db.get_id(what)
 		if item_id == None:
 			raise MeatError('Invalid item name')
@@ -211,7 +202,6 @@ class MeatMachine(object):
 			cocktail = db.get_drink(what)
 		if not self.can_craft(what):
 			return False
-
 		form_data = {
 				'mode':kind,
 				'pwd': self.pwd,
@@ -232,6 +222,27 @@ class MeatMachine(object):
 		# self.output('craft', response.text)
 		return "You acquire" in response.text
 
+	def can_craft(self, item_name):
+		'''
+		Returns True if you have the parts to brew this booze item
+		'''
+		parts_list = db.get_parts(item_name)
+		craftable = True
+		if len(parts_list) == 0:
+			craftable = False
+		for part in parts_list:
+			if self.inv_qty(part) == 0:
+				craftable = False
+		return craftable
+
+	def output(self, filename, text):
+		output = open(filename, 'w')
+		output.write(text)
+		output.close()
+
+	def has_adventures(self):
+		return self.adventures > 0
+
 	def inv_qty(self, item_name):
 		'''
 		Takes an item name or item id and returns the quantity in your inventory
@@ -240,17 +251,22 @@ class MeatMachine(object):
 			key = unicode(db.get_id(item_name))
 		elif isinstance(item_name, int):
 			key = unicode(item_name)
+		elif isinstance(item_name, unicode):
+			key = item_name
 		if key in self.inventory:
 			return int(self.inventory[key])
 		else:
 			return 0
 
-	def can_craft(self, item_name):
+	def print_inv(self):
 		'''
-		Returns True if you have the parts to brew this booze item
+		Prints a mapping of each item in your inventory to its quantity
 		'''
-		parts_list = db.get_parts(item_name)
-		for part in parts_list:
-			if self.inv_qty(part) == 0:
-				return False
-		return True
+		print [(db.get_name(key), self.inv_qty(key)) for key in self.inventory if db.get_name(key) is not None]
+
+	def print_parts(self, item_name):
+		'''
+		Prints list of items and the inventory quantity for the cocktail specified by item_name
+		'''
+		for item in db.get_parts(item_name):
+			print(db.get_name(item),self.inv_qty(item))

@@ -35,6 +35,8 @@ items = {
 	'prussian cathouse':1583,
 	'mae west':1584
 }
+# Init two-way mapping for items
+[items.__setitem__(value, key) for (key,value) in items.items()]
 
 skills = {
 	'disco nap':5007,
@@ -57,16 +59,29 @@ drinks = {
 }
 
 def get_id(name):
-		'''
-		Takes an item name and returns its id number. Returns None if 
-		there is no known item called 'name'
-		'''
-		if name in items:
-			return items[name]
-		elif name in skills:
-			return skills[name]
-		else:
-			return None
+	'''
+	Takes an item name and returns its id number. Returns None if 
+	there is no known item called 'name'
+	'''
+	if name in items:
+		return items[name]
+	elif name in skills:
+		return skills[name]
+	else:
+		return None
+
+def get_name(id):
+	'''
+	Takes an item id number (in unicode or integer form) as input and returns the item's name string
+	'''
+	if isinstance(id, unicode):
+		key = int(id)
+	if isinstance(id, int):
+		key = id
+	if key in items:
+		return items[key]
+	else:
+		return None
 
 def get_drink(name):
 	'''
@@ -92,12 +107,13 @@ def get_parts(name):
 	4th to create the finished item.
 	'''
 	cocktail = get_drink(name)
-	parts = cocktail.parts()
 	parts_list = []
-	if isinstance(parts[0],drink):
-		parts_list.extend([part for part in parts[0].parts()])
-		parts_list.append(parts[0].id)
-	else:
-		parts_list.append(parts[0])
-	parts_list.append(parts[1])
+	if cocktail is not None:
+		parts = cocktail.parts()
+		if isinstance(parts[0],drink):
+			parts_list.extend([part for part in parts[0].parts()])
+			parts_list.append(parts[0].id)
+		else:
+			parts_list.append(parts[0])
+		parts_list.append(parts[1])
 	return parts_list

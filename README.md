@@ -11,6 +11,4 @@ See the sample main.py that is included for an example of how to use the bot.
 
 TO DO: 
 ------
-* Add food/booze crafting
 * Add method to purchase new supplies for crafting
-
