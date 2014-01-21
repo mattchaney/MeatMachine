@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 '''
 This is a sample main that is used for a Disco Bandit.
 '''
@@ -22,7 +22,7 @@ def main():
 
 	# Use the still 10 times for whatever booze items you have
 	boozes = ['bottle of vodka', 'bottle of gin', 'bottle of whiskey', 'boxed wine']
-	garnishes = ['strawberry', 'olive']
+	garnishes = ['olive','strawberry','lemon','grapefruit','orange'] 
 	for i in xrange(5):
 		item = random_item(bot, boozes)
 		if item is not None:
@@ -36,36 +36,36 @@ def main():
 			bot.use_still(item)
 		else:
 			break
-
+		
 	# Eat some burritos
 	for _ in xrange(5):
 		if bot.consume('food', 'insanely spicy bean burrito'):
-			print('Ate an insanely spicy bean burrito')
-		else:
-			break
-			
+			print('Ate an insanely spicy bean burrito')		
+
 	# Make some cocktails
 	drinks = db.get_all_drinks()
-	for item in drinks:
-		if bot.can_craft(item):
-			while bot.craft('cocktail', item):
-				print "Mixed a %s" % item
+	drinksmap = {}
+	for drink in drinks:
+		drinksmap[drink] = drinks[drink].potency
+		if bot.can_craft(drink):
+			while bot.craft('cocktail', drink):
+				print "Mixed a %s" % drink
 
 	# All you can drink!
 	if bot.drunk < 19:
-		drinks = {'perpendicular hula':4,'pink pony':4, 'vodka stratocaster':4, 'neuromancer':4, 'mae west':4, 'rabbit punch':4, 'prussian cathouse':4, 'calle de miel':4, 'perpendicular hula':4, 'vodka gibson':3, 'gibson':3}
-		cocktail = random_item(bot, drinks.keys())
-		while cocktail is not None and bot.drunk < 20 - drinks[cocktail] and bot.consume('booze', cocktail):
-			cocktail = random_item(bot, drinks.keys())
-			print('Drank a %s' % cocktail)
+		drink = random_item(bot, drinksmap.keys())
+		while drink is not None and bot.drunk < 20 - drinksmap[drink] and bot.consume('booze', drink):
+			drink = random_item(bot, drinks.keys())
+			print('Drank a %s' % drink)
 
 	# Time to go on an adventure!
 	print('Starting with %d adventures' % bot.adventures)
 	while bot.has_adventures():
-		# use these skills every 10 adventures
+		# use these every 10 adventures
 		if bot.adventures % 10 == 0:
-			bot.use_skill('disco fever', 1)
-			bot.use_skill('disco leer', 1)
+			bot.use_item('bag of Cheat-Os')
+			bot.use_skill('disco fever')
+			bot.use_skill('disco leer')
 		if bot.hp < 40:
 			bot.use_skill('disco nap', 2)
 			print('Used disco power nap twice')
@@ -85,4 +85,5 @@ def random_item(bot, items):
 			return item
 	return None
 
-main()
+if __name__ == '__main__':
+	main()

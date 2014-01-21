@@ -1,8 +1,9 @@
-#! /usr/python
+#!/usr/bin/env python
 
 class drink(object):
-	def __init__(self, name, id, a, b):
+	def __init__(self, name, potency, id, a, b):
 		self.name = name
+		self.potency = potency
 		self.id = id
 		self.a = a
 		self.b = b

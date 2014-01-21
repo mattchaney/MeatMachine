@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
 import requests, hashlib, json, db
 from bs4 import BeautifulSoup
 
@@ -36,7 +37,7 @@ class MeatMachine(object):
 			'loginname':username,
 			'secure':'1',
 			'challenge':challenge,
-			'response':response
+			'response':response,
 		}
 		response = self.session.post(self.serverURL + '/login.php', data=form_data)
 		# self.output('login', response.text)
@@ -101,12 +102,10 @@ class MeatMachine(object):
 			form_data = {'action':'steal'}
 			response = self.session.post(self.serverURL + '/fight.php', data=form_data)
 		# Two men enter, one man leave
-		monster_alive = True
-		while monster_alive:
+		while True:
 			form_data = {'action':'attack'}
 			response = self.session.post(self.serverURL + '/fight.php', data=form_data)
 			if 'Adventure Again' in response.text:
-				monster_alive = False
 				break
 		self.update()
 
@@ -128,11 +127,31 @@ class MeatMachine(object):
 			'pwd':self.pwd,
 			'action':'Skillz',
 			'whichskill':skill,
-			'quantity':quantity
+			'quantity':quantity,
 		}
 		response = self.session.post(self.serverURL + '/skills.php', data=form_data)
-		# self.output('skill',response.text)
 		self.update()
+		# self.output('skill',response.text)
+
+	def use_item(self, whichitem):
+		'''
+		Uses item specified by whichitem once
+		'''
+		if not self.loggedin:
+			raise MeatError('Must be logged in')
+		item_id = db.get_id(whichitem)
+		if item_id == None:
+			raise MeatError('Invalid item name: %s' % whichitem)
+		form_data = {
+			'pwd': self.pwd,
+			'which':3,
+			'whichitem':item_id,
+			'ajax':1,
+			'_':1389622315049,
+		}
+		response = self.session.get(self.serverURL + '/inv_use.php', data=form_data)
+		self.update()
+		# self.output('useitem', response.text)
 
 	def consume(self, kind, what, quantity=1):
 		'''
@@ -151,7 +170,7 @@ class MeatMachine(object):
 		form_data = {
 			'pwd': self.pwd,
 			'which': quantity,
-			'whichitem': item_id
+			'whichitem': item_id,
 		}
 		if kind is 'food':
 			response = self.session.post(self.serverURL + '/inv_eat.php', data=form_data)
@@ -183,7 +202,7 @@ class MeatMachine(object):
 		form_data = {
 			'action':'stillbooze',
 			'whichitem':item_id,
-			'quantity':quantity
+			'quantity':quantity,
 		}
 		response = self.session.post(self.serverURL + '/guild.php', data=form_data)
 		self.update()
