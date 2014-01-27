@@ -288,4 +288,4 @@ class MeatMachine(object):
 		Prints list of items and the inventory quantity for the cocktail specified by item_name
 		'''
 		for item in db.get_parts(item_name):
-			print(db.get_name(item),self.inv_qty(item))
+			print('{}: {}'.format(db.get_name(item),self.inv_qty(item)))

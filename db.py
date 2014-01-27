@@ -38,6 +38,7 @@ items = {
 	'perpendicular hula':1016,
 	'calle de miel':1018,
 	'tequila sunset':1565,
+	'zmobie':1566,
 	'vodka gibson':1569,
 	'gibson':1570,
 	'parisian cathouse':1571,
@@ -45,6 +46,7 @@ items = {
 	'caipifruta':1573,
 	'teqiwila':1574,
 	'tangarita':1577,
+	'mandarina colada':1578,
 	'vodka stratocaster':1581,
 	'neuromancer':1582,
 	'prussian cathouse':1583,
@@ -73,18 +75,16 @@ drinks = {
 	'teqiwila slammer':drink('teqiwila slammer',4,items['teqiwila slammer'],lambda:drinks['teqiwila'],items['coconut shell']),
 	'tangarita':drink('tangarita',4,items['tangarita'],lambda:drinks['tequila sunset'],items['magical ice cubes']),
 	'mon tiki':drink('mon tiki',4,items['mon tiki'],lambda:drinks['caipifruta'],items['coconut shell']),
+	'mandarina colada':drink('mandarina colada',4,items['mandarina colada'],lambda:drinks['zmobie'],items['magical ice cubes']),
 	# Premium Cocktails
 	'gibson': drink('gibson',3,items['gibson'],items['bottle of calcutta emerald'],items['cocktail onion']),
 	'rabbit punch':drink('rabbit punch',3,items['rabbit punch'],items['bottle of domesticated turkey'],items['raspberry']),
 	'parisian cathouse':drink('parisian cathouse',3,items['parisian cathouse'],items['boxed champagne'],items['raspberry']),
 	'vodka gibson':drink('vodka gibson',3,items['vodka gibson'],items['bottle of definit'],items['cocktail onion']),
 	'teqiwila':drink('teqiwila',3,items['teqiwila'],items['kiwi'],items['bottle of jorge sinsonte']),
-	'tequila sunset':drink('tequila sunset',3,items['tequila sunset'],items['kiwi'],items['bottle of jorge sinsonte']),
 	'caipifruta':drink('caipifruta',3,items['caipifruta'],items['kiwi'],items['bottle of lieutenant freeman']),
-	# Fruity Girl Drinks
-	'calle de miel':drink('calle de miel',4,items['calle de miel'],items['magical ice cubes'],items['margarita']),
-	# Simple Cocktails
-	'margarita':drink('margarita',3,items['margarita'],items['lemon'],items['bottle of tequila']),
+	'zmobie':drink('zmobie',3,items['zmobie'],items['tangerine'],items['bottle of lieutenant freeman']),
+	'tequila sunset':drink('tequila sunset',3,items['tequila sunset'],items['tangerine'],items['bottle of jorge sinsonte']),
 }
 
 def get_id(name):

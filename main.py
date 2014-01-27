@@ -16,13 +16,13 @@ def main():
 		print('Failed to log in')
 		exit(0)
 	print('You are now logged in')
-	print('You have %d adventures' % bot.adventures)
+	print('You have {} adventures'.format(bot.adventures))
 
 	bot.use_skill('advanced cocktailcrafting', 5)
 
 	# Use the still 10 times for whatever booze items you have
-	boozes = ['bottle of vodka', 'bottle of gin', 'bottle of whiskey', 'boxed wine']
-	garnishes = ['olive','strawberry','lemon','grapefruit','orange'] 
+	boozes = ['bottle of whiskey', 'boxed wine'] # 'bottle of vodka', 'bottle of gin', 'bottle of tequila' are taking a break
+	garnishes = ['strawberry','olive','lemon','grapefruit'] # 'orange' is taking a break
 	for i in xrange(5):
 		item = random_item(bot, boozes)
 		if item is not None:
@@ -49,15 +49,15 @@ def main():
 		drinksmap[drink] = drinks[drink].potency
 		if bot.can_craft(drink):
 			while bot.craft('cocktail', drink):
-				print "Mixed a %s" % drink
+				print("Mixed a {}".format(drink))
 
 	# All you can drink!
-	if bot.drunk < 19:
-		drink = random_item(bot, drinksmap.keys())
-		while drink is not None and bot.drunk < 20 - drinksmap[drink] and bot.consume('booze', drink):
-			drink = random_item(bot, drinks.keys())
-			print('Drank a %s' % drink)
-
+	drink = random_item(bot, drinksmap.keys())
+	while drink is not None and bot.drunk < 20 - drinksmap[drink]:
+		if bot.consume('booze', drink):
+			print('Drank a {}'.format(drink))
+		drink = random_item(bot, drinks.keys())
+			
 	# Time to go on an adventure!
 	print('Starting with %d adventures' % bot.adventures)
 	while bot.has_adventures():
@@ -71,17 +71,23 @@ def main():
 			print('Used disco power nap twice')
 		bot.adventure(110)
 		if(bot.adventures % 25 == 0):
-			print("%d adventures left, current hp: %d" % (bot.adventures, bot.hp))
+			print("{} adventures left, current hp: {}".format(bot.adventures, bot.hp))
 	# A nightcap
 	[bot.consume('booze', item) for item in drinks if bot.inv_qty(item) > 0]
 	bot.update()
-	print("Logging out. New meat total: %d." % bot.meat)
+	print("Logging out. New meat total: {}".format(bot.meat))
 	bot.logout()
 
 def random_item(bot, items):
 	random.shuffle(items)
 	for item in items:
-		if(bot.inv_qty(item) > 0):
+		if bot.inv_qty(item) > 0:
+			return item
+	return None
+
+def get_item(bot, items):
+	for item in items:
+		if bot.inv_qty(item) > 0:
 			return item
 	return None
 
