@@ -3,14 +3,14 @@
 import requests, hashlib, json, db
 from bs4 import BeautifulSoup
 
-class MeatError(Exception):
+class meaterror(Exception):
 	def __init__(self, msg):
 		self.msg = msg
 		
 	def __str__(self):
 		return repr(self.msg)
 
-class MeatMachine(object):
+class meatmachine(object):
 	def __init__(self):
 		self.session = requests.session()
 		self.loggedin = False
@@ -59,7 +59,7 @@ class MeatMachine(object):
 		Must be logged in before this method is called.
 		'''
 		if not self.loggedin:
-			raise MeatError("You must log in before calling update")
+			raise meaterror("You must log in before calling update")
 		payload = {'what':'status', 'for':'MeatMachine by Moot'}
 		response = self.session.get(self.serverURL + '/api.php', params=payload)
 		# self.output('update', response.text)
@@ -84,11 +84,11 @@ class MeatMachine(object):
 		refer to http://kol.coldfront.net/thekolwiki/index.php/Areas_by_Number
 		'''
 		if not self.loggedin:
-			raise MeatError('You must log in before calling adventure()')
+			raise meaterror('You must log in before calling adventure()')
 		if(self.adventures == 0):
 			return
 		if not isinstance(where, int):
-			raise MeatError('Adventure location must be an integer, type(where): %s' % type(where))
+			raise meaterror('Adventure location must be an integer, type(where): %s' % type(where))
 		snarfblat = where
 		adventureURL = self.serverURL + '/adventure.php'
 		payload = {'snarfblat':where}
@@ -117,11 +117,11 @@ class MeatMachine(object):
 		refer to http://kol.coldfront.net/thekolwiki/index.php/Skills_by_number
 		'''
 		if not self.loggedin:
-			raise MeatError('You must log in before calling use_skill()')
+			raise meaterror('You must log in before calling use_skill()')
 		if not isinstance(quantity, int):
-			raise MeatError('Quantity must be an integer, type (quantity): %s' % type(quantity))
+			raise meaterror('Quantity must be an integer, type (quantity): %s' % type(quantity))
 		if quantity < 1:
-			raise MeatError('Can\'t use this skill a negative quantity of times: too meta')
+			raise meaterror('Can\'t use this skill a negative quantity of times: too meta')
 		skill = db.get_id(what)
 		form_data = {
 			'pwd':self.pwd,
@@ -138,10 +138,10 @@ class MeatMachine(object):
 		Uses item specified by whichitem once
 		'''
 		if not self.loggedin:
-			raise MeatError('Must be logged in')
+			raise meaterror('Must be logged in')
 		item_id = db.get_id(whichitem)
 		if item_id == None:
-			raise MeatError('Invalid item name: %s' % whichitem)
+			raise meaterror('Invalid item name: %s' % whichitem)
 		form_data = {
 			'pwd': self.pwd,
 			'which':3,
@@ -159,14 +159,14 @@ class MeatMachine(object):
 		eat or drink it if it's available.
 		'''
 		if not self.loggedin:
-			raise MeatError('You must log in first')
+			raise meaterror('You must log in first')
 		if not isinstance(quantity, int):
-			raise MeatError('Quantity must be an integer, type(quantity): %s' % type(quantity))
+			raise meaterror('Quantity must be an integer, type(quantity): %s' % type(quantity))
 		if quantity < 1:
-			raise MeatError('Can\'t use this skill a negative quantity of times')
+			raise meaterror('Can\'t use this skill a negative quantity of times')
 		item_id = db.get_id(what)
 		if item_id == None:
-			raise MeatError('Invalid item name')
+			raise meaterror('Invalid item name')
 		form_data = {
 			'pwd': self.pwd,
 			'which': quantity,
@@ -177,7 +177,7 @@ class MeatMachine(object):
 		elif kind is 'booze':
 			response = self.session.post(self.serverURL + '/inv_booze.php', data=form_data)
 		else:
-			raise MeatError('kind must be either food or booze, kind: %s ' % kind)
+			raise meaterror('kind must be either food or booze, kind: %s ' % kind)
 		self.output('consume', response.text)
 		self.update()
 		if "You don't have the item you're trying to use" in response.text or "You're too full to eat that" in response.text:
@@ -191,14 +191,14 @@ class MeatMachine(object):
 		improve a booze item or ingredient
 		'''
 		if not self.loggedin:
-			raise MeatError('Must be logged in')
+			raise meaterror('Must be logged in')
 		if not isinstance(quantity, int):
-			raise MeatError('Quantity must be of type integer, quantity: %d' % quantity)
+			raise meaterror('Quantity must be of type integer, quantity: %d' % quantity)
 		if(quantity < 1):
-			raise MeatError('Quantity must be positive, quantity: %d' % quantity)
+			raise meaterror('Quantity must be positive, quantity: %d' % quantity)
 		item_id = db.get_id(what)
 		if item_id == None:
-			raise MeatError('Invalid item name: %s' % what)
+			raise meaterror('Invalid item name: %s' % what)
 		form_data = {
 			'action':'stillbooze',
 			'whichitem':item_id,
@@ -214,9 +214,9 @@ class MeatMachine(object):
 		'kind' should be 'cocktail' to craft a booze item.
 		'''
 		if not self.loggedin:
-			raise MeatError('Must be logged in')
+			raise meaterror('Must be logged in')
 		if not isinstance(quantity, int):
-			raise MeatError('Quantity must be an integer, type(quantity): %s' % type(quantity))
+			raise meaterror('Quantity must be an integer, type(quantity): %s' % type(quantity))
 		if kind == 'cocktail':
 			cocktail = db.get_drink(what)
 		if not self.can_craft(what):
@@ -249,13 +249,15 @@ class MeatMachine(object):
 		craftable = True
 		if len(parts_list) == 0:
 			craftable = False
+		if len(parts_list) == 4:
+			parts_list = parts_list[2:]
 		for part in parts_list:
 			if self.inv_qty(part) == 0:
 				craftable = False
 		return craftable
 
 	def output(self, filename, text):
-		output = open(filename, 'w')
+		output = open(filename + '.out', 'w')
 		output.write(text)
 		output.close()
 
@@ -287,5 +289,7 @@ class MeatMachine(object):
 		'''
 		Prints list of items and the inventory quantity for the cocktail specified by item_name
 		'''
+		print('{}\n------------'.format(item_name))
 		for item in db.get_parts(item_name):
 			print('{}: {}'.format(db.get_name(item),self.inv_qty(item)))
+		print('')

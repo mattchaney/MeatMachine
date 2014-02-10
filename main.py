@@ -2,11 +2,10 @@
 '''
 This is a sample main that is used for a Disco Bandit.
 '''
-import time, random, db
-from meatmachine import MeatMachine
+import time, random, db, meatmachine
 
 def main():
-	bot = MeatMachine()
+	bot = meatmachine.meatmachine()
 	print(time.strftime("%Y/%m/%d"))
 
 	# auth is a text file containining the account password
