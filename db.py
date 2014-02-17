@@ -26,11 +26,11 @@ items = {
 	'bottle of rum':787,
 	'bottle of tequila':1004,
 	'boxed wine':1005,
-	'bottle of domesticated turkey':1551,
-	'bottle of definit':1552,
-	'bottle of calcutta emerald':1553,
-	'bottle of lieutenant freeman':1554,
-	'bottle of jorge sinsonte':1555,
+	'bottle of Domesticated Turkey':1551,
+	'bottle of Definit':1552,
+	'bottle of Calcutta Emerald':1553,
+	'bottle of Lieutenant Freeman':1554,
+	'bottle of Jorge Sinsonte':1555,
 	'boxed champagne':1556,
 	# Finished Drinks
 	'pink pony':684,
@@ -66,6 +66,20 @@ skills = {
 	'disco leer':5039,
 }
 
+upgrades = {
+	'bottle of gin':'bottle of Calcutta Emerald',
+	'bottle of vodka':'bottle of Definit',
+	'bottle of whiskey':'bottle of Domesticated Turkey',
+	'bottle of tequila':'bottle of Jorge Sinsonte',
+	'bottle of rum':'bottle of Lietenant Freeman',
+	'boxed wine':'boxed champagne',
+	'olive':'cocktail onion',
+	'lemon':'kiwi',
+	'orange':'kumquat',
+	'strawberry':'raspberry',
+	'grapefruit':'tangerine',
+}
+
 drinks = {
 	# Extra-Fruity Girl Drinks
 	'mae west':drink('mae west',4,items['mae west'],lambda:drinks['rabbit punch'],items['magical ice cubes']),
@@ -77,14 +91,14 @@ drinks = {
 	'mon tiki':drink('mon tiki',4,items['mon tiki'],lambda:drinks['caipifruta'],items['coconut shell']),
 	'mandarina colada':drink('mandarina colada',4,items['mandarina colada'],lambda:drinks['zmobie'],items['magical ice cubes']),
 	# Premium Cocktails
-	'gibson': drink('gibson',3,items['gibson'],items['bottle of calcutta emerald'],items['cocktail onion']),
-	'rabbit punch':drink('rabbit punch',3,items['rabbit punch'],items['bottle of domesticated turkey'],items['raspberry']),
+	'gibson': drink('gibson',3,items['gibson'],items['bottle of Calcutta Emerald'],items['cocktail onion']),
+	'rabbit punch':drink('rabbit punch',3,items['rabbit punch'],items['bottle of Domesticated Turkey'],items['raspberry']),
 	'parisian cathouse':drink('parisian cathouse',3,items['parisian cathouse'],items['boxed champagne'],items['raspberry']),
-	'vodka gibson':drink('vodka gibson',3,items['vodka gibson'],items['bottle of definit'],items['cocktail onion']),
-	'teqiwila':drink('teqiwila',3,items['teqiwila'],items['kiwi'],items['bottle of jorge sinsonte']),
-	'caipifruta':drink('caipifruta',3,items['caipifruta'],items['kiwi'],items['bottle of lieutenant freeman']),
-	'zmobie':drink('zmobie',3,items['zmobie'],items['tangerine'],items['bottle of lieutenant freeman']),
-	'tequila sunset':drink('tequila sunset',3,items['tequila sunset'],items['tangerine'],items['bottle of jorge sinsonte']),
+	'vodka gibson':drink('vodka gibson',3,items['vodka gibson'],items['bottle of Definit'],items['cocktail onion']),
+	'teqiwila':drink('teqiwila',3,items['teqiwila'],items['kiwi'],items['bottle of Jorge Sinsonte']),
+	'caipifruta':drink('caipifruta',3,items['caipifruta'],items['kiwi'],items['bottle of Lieutenant Freeman']),
+	'zmobie':drink('zmobie',3,items['zmobie'],items['tangerine'],items['bottle of Lieutenant Freeman']),
+	'tequila sunset':drink('tequila sunset',3,items['tequila sunset'],items['tangerine'],items['bottle of Jorge Sinsonte']),
 }
 
 def get_id(name):

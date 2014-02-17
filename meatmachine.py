@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
-import requests, hashlib, json, db
+import requests
+import hashlib
+import json
+import db
+import re
 from bs4 import BeautifulSoup
 
 class meaterror(Exception):
@@ -185,27 +189,41 @@ class meatmachine(object):
 		else:
 			return True
 
-	def use_still(self, what, quantity=1):
+	def use_still(self, what):
 		'''
 		Will go to the sneaky dude guild and use Nash Crosby's still to
-		improve a booze item or ingredient
+		improve a booze item or ingredient. What is the un-upgraded item name.
+
 		'''
 		if not self.loggedin:
 			raise meaterror('Must be logged in')
-		if not isinstance(quantity, int):
-			raise meaterror('Quantity must be of type integer, quantity: %d' % quantity)
-		if(quantity < 1):
-			raise meaterror('Quantity must be positive, quantity: %d' % quantity)
-		item_id = db.get_id(what)
-		if item_id == None:
-			raise meaterror('Invalid item name: %s' % what)
+		
 		form_data = {
-			'action':'stillbooze',
-			'whichitem':item_id,
-			'quantity':quantity,
+			'whichshop':'still',
 		}
-		response = self.session.post(self.serverURL + '/guild.php', data=form_data)
+		response = self.session.get(self.serverURL + '/shop.php', params=form_data)
+		soup = BeautifulSoup(response.text)
+		what = db.upgrades[what]
+		print what
+		if what is None:
+			raise meaterror('Item {} not found'.format(what))
+		for row in soup('input', value='Improve'):
+			if what in row.parent.parent.find('b').string:
+				whichrow = re.search('whichrow=(.+?)&', row.attrs['onclick']).group(1)
+				break
+		else:
+			raise meaterror('{} not found'.format(what))
+		
+		form_data['whichshop'] = 'still'
+		form_data['action'] = 'buyitem'
+		form_data['quantity'] = 1
+		form_data['whichrow'] =  whichrow
+		form_data['pwd'] = self.pwd
+		
+		response = self.session.get(self.serverURL + '/shop.php', params=form_data)
 		self.update()
+		soup = BeautifulSoup(response.text)
+		return soup.find('td', class_='effect').text
 		# self.output('still', response.text)
 
 	def craft(self, kind, what, quantity=1):
@@ -279,11 +297,11 @@ class meatmachine(object):
 		else:
 			return 0
 
-	def print_inv(self):
+	def get_inv(self):
 		'''
 		Prints a mapping of each item in your inventory to its quantity
 		'''
-		print [(db.get_name(key), self.inv_qty(key)) for key in self.inventory if db.get_name(key) is not None]
+		return [(db.get_name(key), self.inv_qty(key)) for key in self.inventory if db.get_name(key) is not None]
 
 	def print_parts(self, item_name):
 		'''

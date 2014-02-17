@@ -2,7 +2,10 @@
 '''
 This is a sample main that is used for a Disco Bandit.
 '''
-import time, random, db, meatmachine
+import time
+import random
+import db
+import meatmachine
 
 def main():
 	bot = meatmachine.meatmachine()
@@ -13,15 +16,15 @@ def main():
 	bot.login('pooroldmoot', open('auth').read())
 	if not bot.loggedin:
 		print('Failed to log in')
-		exit(0)
+		exit(1)
 	print('You are now logged in')
 	print('You have {} adventures'.format(bot.adventures))
 
 	bot.use_skill('advanced cocktailcrafting', 5)
 
 	# Use the still 10 times for whatever booze items you have
-	boozes = ['bottle of whiskey', 'boxed wine'] # 'bottle of vodka', 'bottle of gin', 'bottle of tequila' are taking a break
-	garnishes = ['strawberry','olive','lemon','grapefruit'] # 'orange' is taking a break
+	boozes = ['bottle of whiskey','boxed wine','bottle of vodka','bottle of gin','bottle of tequila']
+	garnishes = ['strawberry','olive','lemon','grapefruit','orange'] 
 	for i in xrange(5):
 		item = random_item(bot, boozes)
 		if item is not None:
@@ -32,7 +35,7 @@ def main():
 	for _ in xrange(5):
 		item = random_item(bot, garnishes)
 		if item is not None:
-			bot.use_still(item)
+			print(bot.use_still(item))
 		else:
 			break
 		
