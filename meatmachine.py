@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 import requests
 import hashlib
@@ -7,14 +7,14 @@ import db
 import re
 from bs4 import BeautifulSoup
 
-class meaterror(Exception):
+class MeatError(Exception):
 	def __init__(self, msg):
 		self.msg = msg
 		
 	def __str__(self):
 		return repr(self.msg)
 
-class meatmachine(object):
+class MeatMachine(object):
 	def __init__(self):
 		self.session = requests.session()
 		self.loggedin = False
@@ -43,11 +43,12 @@ class meatmachine(object):
 			'challenge':challenge,
 			'response':response,
 		}
-		response = self.session.post(self.serverURL + '/login.php', data=form_data)
+		response = self.session.post(self.serverURL + '/login.php', params=form_data)
 		# self.output('login', response.text)
 		if 'login' not in response.url:
 			self.loggedin = True
 			self.update()
+		self.session.get(self.serverURL + '/main.php')
 
 	def logout(self):
 		'''
@@ -55,7 +56,7 @@ class meatmachine(object):
 		'''
 		if self.loggedin:
 			logoutURL = self.serverURL + '/logout.php'
-			response = self.session.get(logoutURL)
+			self.session.get(logoutURL)
 			self.loggedin = False
 
 	def update(self):
@@ -63,7 +64,7 @@ class meatmachine(object):
 		Must be logged in before this method is called.
 		'''
 		if not self.loggedin:
-			raise meaterror("You must log in before calling update")
+			raise MeatError("You must log in before calling update")
 		payload = {'what':'status', 'for':'MeatMachine by Moot'}
 		response = self.session.get(self.serverURL + '/api.php', params=payload)
 		# self.output('update', response.text)
@@ -88,30 +89,30 @@ class meatmachine(object):
 		refer to http://kol.coldfront.net/thekolwiki/index.php/Areas_by_Number
 		'''
 		if not self.loggedin:
-			raise meaterror('You must log in before calling adventure()')
+			raise MeatError('You must log in before calling adventure()')
 		if(self.adventures == 0):
-			return
-		if not isinstance(where, int):
-			raise meaterror('Adventure location must be an integer, type(where): %s' % type(where))
-		snarfblat = where
-		adventureURL = self.serverURL + '/adventure.php'
+			return False
 		payload = {'snarfblat':where}
-		response = self.session.get(adventureURL, params=payload)
-		page = BeautifulSoup(response.text)
+		response = self.session.get(self.serverURL + '/adventure.php', params=payload)
+		
 		if 'Adventure Again' in response.text:
 			self.update()
-			return
+			return True
+		
+		page = BeautifulSoup(response.text)
 		# If you can steal, attempt once
-		if None != page.find('input', attrs = {'name':'steal'}):
-			form_data = {'action':'steal'}
-			response = self.session.post(self.serverURL + '/fight.php', data=form_data)
+		if page.find('input', value='steal') is not None:
+			payload = {'action':'steal'}
+			response = self.session.post(self.serverURL + '/fight.php', params=payload)
+			
 		# Two men enter, one man leave
 		while True:
-			form_data = {'action':'attack'}
-			response = self.session.post(self.serverURL + '/fight.php', data=form_data)
+			payload = {'action':'attack'}
+			response = self.session.post(self.serverURL + '/fight.php', params=payload)
 			if 'Adventure Again' in response.text:
 				break
 		self.update()
+		return True
 
 	def use_skill(self, what, quantity=1):
 		'''
@@ -121,11 +122,11 @@ class meatmachine(object):
 		refer to http://kol.coldfront.net/thekolwiki/index.php/Skills_by_number
 		'''
 		if not self.loggedin:
-			raise meaterror('You must log in before calling use_skill()')
+			raise MeatError('You must log in before calling use_skill()')
 		if not isinstance(quantity, int):
-			raise meaterror('Quantity must be an integer, type (quantity): %s' % type(quantity))
+			raise MeatError('Quantity must be an integer, type (quantity): %s' % type(quantity))
 		if quantity < 1:
-			raise meaterror('Can\'t use this skill a negative quantity of times: too meta')
+			raise MeatError('Can\'t use this skill a negative quantity of times: too meta')
 		skill = db.get_id(what)
 		form_data = {
 			'pwd':self.pwd,
@@ -134,6 +135,12 @@ class meatmachine(object):
 			'quantity':quantity,
 		}
 		response = self.session.post(self.serverURL + '/skills.php', data=form_data)
+		soup = BeautifulSoup(response.text)
+		effect = soup.find('td', class_='effect')
+		if effect is not None:
+			return effect.text
+		else: 
+			return None
 		self.update()
 		# self.output('skill',response.text)
 
@@ -142,19 +149,25 @@ class meatmachine(object):
 		Uses item specified by whichitem once
 		'''
 		if not self.loggedin:
-			raise meaterror('Must be logged in')
+			raise MeatError('Must be logged in')
 		item_id = db.get_id(whichitem)
 		if item_id == None:
-			raise meaterror('Invalid item name: %s' % whichitem)
+			raise MeatError('Invalid item name: %s' % whichitem)
 		form_data = {
 			'pwd': self.pwd,
 			'which':3,
 			'whichitem':item_id,
 			'ajax':1,
-			'_':1389622315049,
+			'_':1392657210613,
 		}
-		response = self.session.get(self.serverURL + '/inv_use.php', data=form_data)
+		response = self.session.get(self.serverURL + '/inv_use.php', params=form_data)
 		self.update()
+		soup = BeautifulSoup(response.text)
+		effect = soup.find('td', class_='effect')
+		if effect is not None:
+			return effect.text
+		else: 
+			return None
 		# self.output('useitem', response.text)
 
 	def consume(self, kind, what, quantity=1):
@@ -163,26 +176,26 @@ class meatmachine(object):
 		eat or drink it if it's available.
 		'''
 		if not self.loggedin:
-			raise meaterror('You must log in first')
+			raise MeatError('You must log in first')
 		if not isinstance(quantity, int):
-			raise meaterror('Quantity must be an integer, type(quantity): %s' % type(quantity))
+			raise MeatError('Quantity must be an integer, type(quantity): %s' % type(quantity))
 		if quantity < 1:
-			raise meaterror('Can\'t use this skill a negative quantity of times')
+			raise MeatError('Can\'t use this skill a negative quantity of times')
 		item_id = db.get_id(what)
 		if item_id == None:
-			raise meaterror('Invalid item name')
+			raise MeatError('Invalid item name')
 		form_data = {
 			'pwd': self.pwd,
 			'which': quantity,
 			'whichitem': item_id,
 		}
 		if kind is 'food':
-			response = self.session.post(self.serverURL + '/inv_eat.php', data=form_data)
+			response = self.session.post(self.serverURL + '/inv_eat.php', params=form_data)
 		elif kind is 'booze':
-			response = self.session.post(self.serverURL + '/inv_booze.php', data=form_data)
+			response = self.session.post(self.serverURL + '/inv_booze.php', params=form_data)
 		else:
-			raise meaterror('kind must be either food or booze, kind: %s ' % kind)
-		self.output('consume', response.text)
+			raise MeatError('kind must be either food or booze, kind: %s ' % kind)
+# 		self.output('consume', response.text)
 		self.update()
 		if "You don't have the item you're trying to use" in response.text or "You're too full to eat that" in response.text:
 			return False
@@ -196,7 +209,7 @@ class meatmachine(object):
 
 		'''
 		if not self.loggedin:
-			raise meaterror('Must be logged in')
+			raise MeatError('Must be logged in')
 		
 		form_data = {
 			'whichshop':'still',
@@ -204,17 +217,15 @@ class meatmachine(object):
 		response = self.session.get(self.serverURL + '/shop.php', params=form_data)
 		soup = BeautifulSoup(response.text)
 		what = db.upgrades[what]
-		print what
 		if what is None:
-			raise meaterror('Item {} not found'.format(what))
+			raise MeatError('Item {} not found'.format(what))
 		for row in soup('input', value='Improve'):
 			if what in row.parent.parent.find('b').string:
-				whichrow = re.search('whichrow=(.+?)&', row.attrs['onclick']).group(1)
+				whichrow = re.search('whichrow=(.+?)&', row.attrs['rel']).group(1)
 				break
 		else:
-			raise meaterror('{} not found'.format(what))
+			return soup.text
 		
-		form_data['whichshop'] = 'still'
 		form_data['action'] = 'buyitem'
 		form_data['quantity'] = 1
 		form_data['whichrow'] =  whichrow
@@ -223,7 +234,11 @@ class meatmachine(object):
 		response = self.session.get(self.serverURL + '/shop.php', params=form_data)
 		self.update()
 		soup = BeautifulSoup(response.text)
-		return soup.find('td', class_='effect').text
+		effect = soup.find('td', class_='effect')
+		if effect is not None:
+			return effect.text
+		else:
+			return None
 		# self.output('still', response.text)
 
 	def craft(self, kind, what, quantity=1):
@@ -232,9 +247,9 @@ class meatmachine(object):
 		'kind' should be 'cocktail' to craft a booze item.
 		'''
 		if not self.loggedin:
-			raise meaterror('Must be logged in')
+			raise MeatError('Must be logged in')
 		if not isinstance(quantity, int):
-			raise meaterror('Quantity must be an integer, type(quantity): %s' % type(quantity))
+			raise MeatError('Quantity must be an integer, type(quantity): %s' % type(quantity))
 		if kind == 'cocktail':
 			cocktail = db.get_drink(what)
 		if not self.can_craft(what):

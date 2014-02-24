@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 class drink(object):
 	def __init__(self, name, potency, id, a, b):

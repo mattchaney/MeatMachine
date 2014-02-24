@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 '''
 This is a sample main that is used for a Disco Bandit.
 '''
@@ -8,7 +8,7 @@ import db
 import meatmachine
 
 def main():
-	bot = meatmachine.meatmachine()
+	bot = meatmachine.MeatMachine()
 	print(time.strftime("%Y/%m/%d"))
 
 	# auth is a text file containining the account password
@@ -23,24 +23,14 @@ def main():
 	bot.use_skill('advanced cocktailcrafting', 5)
 
 	# Use the still 10 times for whatever booze items you have
-	boozes = ['bottle of whiskey','boxed wine','bottle of vodka','bottle of gin','bottle of tequila']
-	garnishes = ['strawberry','olive','lemon','grapefruit','orange'] 
-	for i in xrange(5):
-		item = random_item(bot, boozes)
-		if item is not None:
-			bot.use_still(item)
-		else:
-			break
-		
-	for _ in xrange(5):
-		item = random_item(bot, garnishes)
-		if item is not None:
-			print(bot.use_still(item))
-		else:
-			break
+	boozes = ['bottle of whiskey', 'boxed wine', 'bottle of vodka', 'bottle of gin', 'bottle of tequila']
+	garnishes = ['strawberry', 'olive', 'lemon', 'grapefruit'] # 'orange' is out 
+	
+	use_still(bot, boozes)
+	use_still(bot, garnishes)
 		
 	# Eat some burritos
-	for _ in xrange(5):
+	for __ in xrange(5):
 		if bot.consume('food', 'insanely spicy bean burrito'):
 			print('Ate an insanely spicy bean burrito')		
 
@@ -58,7 +48,7 @@ def main():
 	while drink is not None and bot.drunk < 20 - drinksmap[drink]:
 		if bot.consume('booze', drink):
 			print('Drank a {}'.format(drink))
-		drink = random_item(bot, drinks.keys())
+		drink = random_item(bot, drinksmap.keys())
 			
 	# Time to go on an adventure!
 	print('Starting with %d adventures' % bot.adventures)
@@ -69,9 +59,10 @@ def main():
 			bot.use_skill('disco fever')
 			bot.use_skill('disco leer')
 		if bot.hp < 40:
-			bot.use_skill('disco nap', 2)
-			print('Used disco power nap twice')
-		bot.adventure(110)
+			print bot.use_skill('disco nap', 2)
+		if not bot.adventure(110):
+			print('still broken')
+			exit()
 		if(bot.adventures % 25 == 0):
 			print("{} adventures left, current hp: {}".format(bot.adventures, bot.hp))
 	# A nightcap
@@ -80,6 +71,16 @@ def main():
 	print("Logging out. New meat total: {}".format(bot.meat))
 	bot.logout()
 
+def use_still(bot, items):
+	for __ in xrange(5):
+		item = random_item(bot, items)
+		if item is None:
+			return
+		result = bot.use_still(item)
+		print result
+		if 'Uh Oh' in result:
+			return
+		
 def random_item(bot, items):
 	random.shuffle(items)
 	for item in items:
