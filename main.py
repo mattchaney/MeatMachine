@@ -23,12 +23,12 @@ def main():
 	bot.use_skill('advanced cocktailcrafting', 5)
 
 	# Use the still 10 times for whatever booze items you have
-	boozes = ['bottle of whiskey', 'boxed wine', 'bottle of vodka', 'bottle of gin', 'bottle of tequila']
+	boozes = ['boxed wine','bottle of vodka', 'bottle of whiskey', 'bottle of gin', 'bottle of tequila']  
 	garnishes = ['strawberry', 'olive', 'lemon', 'grapefruit'] # 'orange' is out 
 	
 	use_still(bot, boozes)
 	use_still(bot, garnishes)
-		
+	
 	# Eat some burritos
 	for __ in xrange(5):
 		if bot.consume('food', 'insanely spicy bean burrito'):
@@ -36,12 +36,7 @@ def main():
 
 	# Make some cocktails
 	drinks = db.get_all_drinks()
-	drinksmap = {}
-	for drink in drinks:
-		drinksmap[drink] = drinks[drink].potency
-		if bot.can_craft(drink):
-			while bot.craft('cocktail', drink):
-				print("Mixed a {}".format(drink))
+	drinksmap = brew(bot, drinks)
 
 	# All you can drink!
 	drink = random_item(bot, drinksmap.keys())
@@ -51,25 +46,39 @@ def main():
 		drink = random_item(bot, drinksmap.keys())
 			
 	# Time to go on an adventure!
-	print('Starting with %d adventures' % bot.adventures)
-	while bot.has_adventures():
-		# use these every 10 adventures
-		if bot.adventures % 10 == 0:
-			bot.use_item('bag of Cheat-Os')
-			bot.use_skill('disco fever')
-			bot.use_skill('disco leer')
-		if bot.hp < 40:
-			print bot.use_skill('disco nap', 2)
-		if not bot.adventure(110):
-			print('still broken')
-			exit()
-		if(bot.adventures % 25 == 0):
-			print("{} adventures left, current hp: {}".format(bot.adventures, bot.hp))
+	adventure(bot)
+
 	# A nightcap
 	[bot.consume('booze', item) for item in drinks if bot.inv_qty(item) > 0]
 	bot.update()
 	print("Logging out. New meat total: {}".format(bot.meat))
 	bot.logout()
+
+def adventure(bot):
+	print('Starting with %d adventures' % bot.adventures)
+	while bot.has_adventures():
+		# use these every 10 adventures
+		if bot.adventures % 10 == 0:
+			print bot.use_item('bag of Cheat-Os')
+			print bot.use_skill('disco fever')
+			print bot.use_skill('disco leer')
+		if bot.hp < 40:
+			print bot.use_skill('disco nap', 2)
+		if not bot.adventure(110):
+			print('still broken')
+			sys.exit(1)
+		if(bot.adventures % 25 == 0):
+			print("{} adventures left, current hp: {}".format(bot.adventures, bot.hp))
+
+def brew(bot, drinks):
+	drinksmap = {}
+	for drink in drinks:
+		drinksmap[drink] = drinks[drink].potency
+		if bot.can_craft(drink):
+			while bot.craft('cocktail', drink):
+				print("Mixed a {}".format(drink))
+	return drinksmap
+
 
 def use_still(bot, items):
 	for __ in xrange(5):
@@ -80,7 +89,7 @@ def use_still(bot, items):
 		print result
 		if 'Uh Oh' in result:
 			return
-		
+
 def random_item(bot, items):
 	random.shuffle(items)
 	for item in items:

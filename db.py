@@ -2,6 +2,9 @@
 
 from drink import drink
 
+'''
+Simple key, value paired database, with two-way mapping for items and their IDs
+'''
 items = {
 	# Food
 	'insanely spicy bean burrito':316,
@@ -82,23 +85,23 @@ upgrades = {
 
 drinks = {
 	# Extra-Fruity Girl Drinks
-	'mae west':drink('mae west',4,items['mae west'],lambda:drinks['rabbit punch'],items['magical ice cubes']),
-	'prussian cathouse':drink('prussian cathouse',4,items['prussian cathouse'],lambda:drinks['parisian cathouse'],items['magical ice cubes']),
-	'neuromancer':drink('neuromancer',4,items['neuromancer'],lambda:drinks['gibson'],items['coconut shell']),
-	'vodka stratocaster':drink('vodka stratocaster',4,items['vodka stratocaster'],lambda:drinks['vodka gibson'],items['coconut shell']),
-	'teqiwila slammer':drink('teqiwila slammer',4,items['teqiwila slammer'],lambda:drinks['teqiwila'],items['coconut shell']),
-	'tangarita':drink('tangarita',4,items['tangarita'],lambda:drinks['tequila sunset'],items['magical ice cubes']),
-	'mon tiki':drink('mon tiki',4,items['mon tiki'],lambda:drinks['caipifruta'],items['coconut shell']),
-	'mandarina colada':drink('mandarina colada',4,items['mandarina colada'],lambda:drinks['zmobie'],items['magical ice cubes']),
+	'mae west':drink('mae west', 4, items['mae west'], lambda:drinks['rabbit punch'], items['magical ice cubes']),
+	'prussian cathouse':drink('prussian cathouse', 4, items['prussian cathouse'], lambda:drinks['parisian cathouse'], items['magical ice cubes']),
+	'neuromancer':drink('neuromancer', 4, items['neuromancer'], lambda:drinks['gibson'], items['coconut shell']),
+	'vodka stratocaster':drink('vodka stratocaster', 4, items['vodka stratocaster'], lambda:drinks['vodka gibson'], items['coconut shell']),
+	'teqiwila slammer':drink('teqiwila slammer', 4, items['teqiwila slammer'], lambda:drinks['teqiwila'], items['coconut shell']),
+	'tangarita':drink('tangarita', 4, items['tangarita'], lambda:drinks['tequila sunset'], items['magical ice cubes']),
+	'mon tiki':drink('mon tiki', 4, items['mon tiki'], lambda:drinks['caipifruta'], items['coconut shell']),
+	'mandarina colada':drink('mandarina colada', 4, items['mandarina colada'], lambda:drinks['zmobie'], items['magical ice cubes']),
 	# Premium Cocktails
-	'gibson': drink('gibson',3,items['gibson'],items['bottle of Calcutta Emerald'],items['cocktail onion']),
-	'rabbit punch':drink('rabbit punch',3,items['rabbit punch'],items['bottle of Domesticated Turkey'],items['raspberry']),
-	'parisian cathouse':drink('parisian cathouse',3,items['parisian cathouse'],items['boxed champagne'],items['raspberry']),
-	'vodka gibson':drink('vodka gibson',3,items['vodka gibson'],items['bottle of Definit'],items['cocktail onion']),
-	'teqiwila':drink('teqiwila',3,items['teqiwila'],items['kiwi'],items['bottle of Jorge Sinsonte']),
-	'caipifruta':drink('caipifruta',3,items['caipifruta'],items['kiwi'],items['bottle of Lieutenant Freeman']),
-	'zmobie':drink('zmobie',3,items['zmobie'],items['tangerine'],items['bottle of Lieutenant Freeman']),
-	'tequila sunset':drink('tequila sunset',3,items['tequila sunset'],items['tangerine'],items['bottle of Jorge Sinsonte']),
+	'gibson': drink('gibson', 3, items['gibson'], items['bottle of Calcutta Emerald'], items['cocktail onion']),
+	'rabbit punch':drink('rabbit punch', 3, items['rabbit punch'], items['bottle of Domesticated Turkey'], items['raspberry']),
+	'parisian cathouse':drink('parisian cathouse', 3, items['parisian cathouse'], items['boxed champagne'], items['raspberry']),
+	'vodka gibson':drink('vodka gibson', 3, items['vodka gibson'], items['bottle of Definit'], items['cocktail onion']),
+	'teqiwila':drink('teqiwila', 3, items['teqiwila'], items['kiwi'], items['bottle of Jorge Sinsonte']),
+	'caipifruta':drink('caipifruta', 3, items['caipifruta'], items['kiwi'], items['bottle of Lieutenant Freeman']),
+	'zmobie':drink('zmobie', 3, items['zmobie'], items['tangerine'], items['bottle of Lieutenant Freeman']),
+	'tequila sunset':drink('tequila sunset', 3, items['tequila sunset'], items['tangerine'], items['bottle of Jorge Sinsonte']),
 }
 
 def get_id(name):

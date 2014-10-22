@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import requests
+import requesocks as requests
 import hashlib
 import json
 import db
@@ -8,6 +8,9 @@ import re
 from bs4 import BeautifulSoup
 
 class MeatError(Exception):
+	'''
+	A simple exception.
+	'''
 	def __init__(self, msg):
 		self.msg = msg
 		
@@ -15,8 +18,14 @@ class MeatError(Exception):
 		return repr(self.msg)
 
 class MeatMachine(object):
-	def __init__(self):
+	'''
+	A Class that keeps state information about a Kingdom of Loathing character and can 
+	be used to automate performing simple in-game tasks, such as adventuring, crafting, 
+	and consuming crafted items.
+	'''
+	def __init__(self, proxies={'http':'socks5://127.0.0.1:8080'}):
 		self.session = requests.session()
+		self.session.proxies = proxies
 		self.loggedin = False
 
 	def login(self, username, password):
@@ -43,7 +52,7 @@ class MeatMachine(object):
 			'challenge':challenge,
 			'response':response,
 		}
-		response = self.session.post(self.serverURL + '/login.php', params=form_data)
+		response = self.session.post(self.serverURL + '/login.php', params=form_data, allow_redirects=True)
 		# self.output('login', response.text)
 		if 'login' not in response.url:
 			self.loggedin = True
@@ -61,7 +70,7 @@ class MeatMachine(object):
 
 	def update(self):
 		'''
-		Must be logged in before this method is called.
+		Must be logged in before this method is called. Updates current player state.
 		'''
 		if not self.loggedin:
 			raise MeatError("You must log in before calling update")
@@ -83,8 +92,8 @@ class MeatMachine(object):
 	def adventure(self, where):
 		'''
 		Will attempt to go to the location with the id specified in 'where' and
-		will kill any monster it finds there.
-		Must be logged in and fed an integer location id for 'where'.
+		will fight any monster it finds there.
+		Must be logged in and provided an integer location id for 'where'.
 		For a list of valid location IDs, 
 		refer to http://kol.coldfront.net/thekolwiki/index.php/Areas_by_Number
 		'''
@@ -195,7 +204,7 @@ class MeatMachine(object):
 			response = self.session.post(self.serverURL + '/inv_booze.php', params=form_data)
 		else:
 			raise MeatError('kind must be either food or booze, kind: %s ' % kind)
-# 		self.output('consume', response.text)
+		# self.output('consume', response.text)
 		self.update()
 		if "You don't have the item you're trying to use" in response.text or "You're too full to eat that" in response.text:
 			return False
@@ -290,9 +299,8 @@ class MeatMachine(object):
 		return craftable
 
 	def output(self, filename, text):
-		output = open(filename + '.out', 'w')
-		output.write(text)
-		output.close()
+		with open(filename + '.out', 'w') as output:
+			output.write(text)
 
 	def has_adventures(self):
 		return self.adventures > 0
